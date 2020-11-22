@@ -6,12 +6,12 @@
 #define ARKANOID_BALL_H
 
 
-#include "cmake-build-debug/DrawableShape.h"
+#include "DrawableShape.h"
 
 class Ball : DrawableShape {
 private:
-    int Speed;
-    int Angle;
+    double speed;
+    double angle;
 };
 
 

@@ -6,7 +6,7 @@
 #define ARKANOID_PLATFORM_H
 
 
-#include "cmake-build-debug/DrawableShape.h"
+#include "DrawableShape.h"
 
 class Platform : public DrawableShape {
 

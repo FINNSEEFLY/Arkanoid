@@ -2,6 +2,11 @@
 #include <iostream>
 #include <windows.h>
 #include "gdiplus.h"
+#include "GameSession.h"
+#include "Resources.h"
+
+
+GameSession *gameSession;
 
 // Обработка событий главного окна
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
@@ -28,19 +33,28 @@ int APIENTRY WinMain(HINSTANCE hInstance,
     wcex.cbClsExtra = 0;
     wcex.cbWndExtra = 0;
     wcex.hInstance = hInstance;
-    wcex.hIcon = LoadIcon(NULL, IDI_APPLICATION);
+    wcex.hIcon = (HICON)LoadImage(hInstance, "res\\ico\\icon.ico", IMAGE_ICON, 256, 256, LR_LOADFROMFILE);
+    wcex.hIconSm = (HICON)LoadImage(hInstance, "res\\ico\\icon.ico", IMAGE_ICON, 256, 256, LR_LOADFROMFILE);
     wcex.hCursor = LoadCursor(NULL, IDC_ARROW);
-    wcex.hbrBackground = (HBRUSH) (COLOR_WINDOW);
+    wcex.hbrBackground = (HBRUSH)GetStockObject(BLACK_BRUSH);
     wcex.lpszMenuName = NULL;
-    wcex.lpszClassName = "SomeWindowClass";
+    wcex.lpszClassName = "ArkanoidWindowClass";
     wcex.hIconSm = wcex.hIcon;
 
     RegisterClassEx(&wcex);
 
 
-    hWnd = CreateWindow("SomeWindowClass", "Some Window",
-                        WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, 0,
-                        CW_USEDEFAULT, 0, NULL, NULL, hInstance, NULL);
+    hWnd = CreateWindow("ArkanoidWindowClass",  // Указатель на зарегистрированное имя класса
+                        "Arkanoid The Game",    // Указатель на имя окна
+                        WS_OVERLAPPEDWINDOW,    // Стиль окна
+                        CW_USEDEFAULT,          // Горизонтальная позиция окна
+                        0,                      // Вертикальная позиция окна
+                        /*CW_USEDEFAULT*/1440,  // Ширина окна
+                        810,                    // Высота окна
+                        NULL,                   // Дескриптор родительского или окна владельца
+                        NULL,                   // Дескриптор меню или идентификатор дочернего окна
+                        hInstance,              // Дескриптор экземпляра приложения
+                        NULL);                  // Указатель на данные создания окна
 
     ShowWindow(hWnd, nCmdShow);
     UpdateWindow(hWnd);
@@ -59,9 +73,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message,
                          WPARAM wParam, LPARAM lParam) {
     switch (message) {
         case WM_CREATE:
-            //TODO инициализация
+            gameSession = new GameSession(hWnd);
         case WM_PAINT:
-
+            gameSession->ResizeEvent();
             break;
         case WM_KEYDOWN:
             switch (wParam) {
@@ -74,9 +88,15 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message,
             }
             break;
         case WM_SIZE:
-            //TODO: ресайз
+
             break;
+        case WM_GETMINMAXINFO: {
+            LPMINMAXINFO lpMMI = (LPMINMAXINFO) lParam;
+            gameSession->PreparerResize(lpMMI);
+            break;
+        }
         case WM_DESTROY:
+            delete gameSession;
             PostQuitMessage(0);
         default:
             return DefWindowProc(hWnd, message, wParam, lParam);

@@ -4,7 +4,7 @@
 
 #ifndef ARKANOID_RESOURCES_H
 #define ARKANOID_RESOURCES_H
-
+#define IDI_MY_ICON 1
 enum BonusType {
     BONUS_EXPAND,
     BONUS_CUT,
@@ -14,6 +14,7 @@ enum BonusType {
     BONUS_FIREBALL,
     BOUNS_SHOOTING
 };
+
 
 
 #endif //ARKANOID_RESOURCES_H
