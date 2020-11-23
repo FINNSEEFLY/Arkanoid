@@ -10,10 +10,9 @@
 #include "Resources.h"
 class Brick : public DrawableShape {
 private:
-    BonusType bonusType;
     int hitsBeforeDestruction;
-    int Experience;
-    bool isDestroyed;
+    int experience;
+    bool isDestroyed = false;
 };
 
 

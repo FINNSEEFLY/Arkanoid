@@ -75,7 +75,11 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message,
         case WM_CREATE:
             gameSession = new GameSession(hWnd);
         case WM_PAINT:
-            gameSession->ResizeEvent();
+            std::cout<<"WM_PAINT"<<std::endl;
+            gameSession->Repaint();
+            break;
+        case WM_ERASEBKGND:
+            return true;
             break;
         case WM_KEYDOWN:
             switch (wParam) {
@@ -88,7 +92,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message,
             }
             break;
         case WM_SIZE:
-
+            gameSession->ResizeEvent();
             break;
         case WM_GETMINMAXINFO: {
             LPMINMAXINFO lpMMI = (LPMINMAXINFO) lParam;

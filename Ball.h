@@ -10,8 +10,10 @@
 
 class Ball : DrawableShape {
 private:
-    double speed;
-    double angle;
+    float speed;
+    float angle;
+    float prevOffsetX;
+    float prevOffsetY;
 };
 
 
