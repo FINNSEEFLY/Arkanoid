@@ -3,22 +3,23 @@
 //
 
 #include <sstream>
+#include <fstream>
 #include "GameSession.h"
 #include "iostream"
-#include "Resources.h"
+#include "Complementary.h"
 
 
 GameSession::GameSession(const HWND hwnd) : hWnd(hwnd) {
-    backgroundPic = new Gdiplus::Image(L"res\\interface\\SpaceBlurred1080p.jpg");
-    PausePic = new Gdiplus::Image(L"res\\interface\\Pause.png");
-    gameZonePic = new Gdiplus::Image(L"res\\interface\\GamingZone.png");
-    platformPic = new Gdiplus::Image(L"res\\platform\\platform.png");
-    ballPic = new Gdiplus::Image(L"res\\ball\\Ball32x32.png");
-    blueBrickPic = new Gdiplus::Image(L"res\\bricks\\BlueBrick.png");
-    GrinBrickPic = new Gdiplus::Image(L"res\\bricks\\GrinBrick.png");
-    PurpleBrickPic = new Gdiplus::Image(L"res\\bricks\\PurpleBrick.png");
-    RedBrickPic = new Gdiplus::Image(L"res\\bricks\\RedBrick.png");
-    YellowBrickPic = new Gdiplus::Image(L"res\\bricks\\YellowBrick.png");
+    backgroundPic = new Gdiplus::Image(BACKGROUND_PIC_PATH);
+    pausePic = new Gdiplus::Image(PAUSE_PIC_PATH);
+    gameZonePic = new Gdiplus::Image(GAME_BOX_PIC_PATH);
+    platformPic = new Gdiplus::Image(PLATFORM_PIC_PATH);
+    ballPic = new Gdiplus::Image(BALL_PIC_PATH);
+    blueBrickPic = new Gdiplus::Image(BLUE_BRICK_PIC_PATH);
+    greenBrickPic = new Gdiplus::Image(GREEN_BRICK_PIC_PATH);
+    purpleBrickPic = new Gdiplus::Image(PURPLE_BRICK_PIC_PATH);
+    redBrickPic = new Gdiplus::Image(RED_BRICK_PIC_PATH);
+    yellowBrickPic = new Gdiplus::Image(YELLOW_BRICK_PIC_PATH);
 
     level = 1;
     lives = 3;
@@ -26,7 +27,7 @@ GameSession::GameSession(const HWND hwnd) : hWnd(hwnd) {
 
     lf.lfCharSet = DEFAULT_CHARSET;
     lf.lfPitchAndFamily = DEFAULT_PITCH;
-    strcpy(lf.lfFaceName, "Open Sans");
+    strcpy(lf.lfFaceName, "Arial");
     lf.lfHeight = DEFAULT_FONT_HEIGHT;
     lf.lfWidth = DEFAULT_FONT_WIDTH;
     lf.lfWeight = DEFAULT_FONT_WEIGHT;
@@ -51,10 +52,6 @@ GameSession::GameSession(const HWND hwnd) : hWnd(hwnd) {
     livesTextRect.left = LIVES_LEFT;
     livesTextRect.right = LIVES_RIGHT;
     livesTextRect.top = TEXT_TOP;
-/*    zeroRect.left = 0;
-    zeroRect.top = 0;
-    zeroRect.right = 0;
-    zeroRect.bottom = 0;*/
 
     platform = new Platform(gameZoneX0, gameZoneY0, platformPic, scale, DEFAULT_PLATFORM_OFFSET_X,
                             DEFAULT_PLATFORM_OFFSET_Y);
@@ -62,15 +59,15 @@ GameSession::GameSession(const HWND hwnd) : hWnd(hwnd) {
 
 GameSession::~GameSession() {
     delete backgroundPic;
-    delete PausePic;
+    delete pausePic;
     delete gameZonePic;
     delete platformPic;
     delete ballPic;
     delete blueBrickPic;
-    delete GrinBrickPic;
-    delete PurpleBrickPic;
-    delete RedBrickPic;
-    delete YellowBrickPic;
+    delete greenBrickPic;
+    delete purpleBrickPic;
+    delete redBrickPic;
+    delete yellowBrickPic;
     delete platform;
 }
 
@@ -84,6 +81,7 @@ void GameSession::ResizeEvent() {
     CalculateGameZone();
 
     CalculateFontProperties();
+    SetResized();
 }
 
 void GameSession::Repaint() {
@@ -91,36 +89,89 @@ void GameSession::Repaint() {
     PrepareFontDrawing(hFont);
 /*    std::cout << "__________________ " << ps.rcPaint.top << " " << ps.rcPaint.bottom << " " << ps.rcPaint.left << " "
               << ps.rcPaint.right << " -------------" << std::endl;*/
-    graphics->DrawImage(backgroundPic, backgroundX0, backgroundY0, backgroundWidth, backgroundHeight);
-    graphics->DrawImage(gameZonePic, gameBoxX0, gameBoxY0, gameBoxSide, gameBoxSide);
+
+    RepaintController();
+    if (resized) {
+        graphics->DrawImage(backgroundPic, backgroundX0, backgroundY0, backgroundWidth, backgroundHeight);
+        graphics->DrawImage(gameZonePic, gameBoxX0, gameBoxY0, gameBoxSide, gameBoxSide);
+    }
     platform->PaintOnGraphics(*graphics);
-    DrawTextA(memDC, ConvertIntToStr(level), -1, (LPRECT) &levelTextRect, DT_CENTER | DT_SINGLELINE | DT_VCENTER);
-    DrawTextA(memDC, ConvertIntToStr(score), -1, (LPRECT) &scoreTextRect, DT_CENTER | DT_SINGLELINE | DT_VCENTER);
-    DrawTextA(memDC, ConvertIntToStr(lives), -1, (LPRECT) &livesTextRect, DT_CENTER | DT_SINGLELINE | DT_VCENTER);
+    DrawTextA(memDC, ConvertIntToLPWSTR(level), -1, (LPRECT) &levelTextRect, DT_CENTER | DT_SINGLELINE | DT_VCENTER);
+    DrawTextA(memDC, ConvertIntToLPWSTR(score), -1, (LPRECT) &scoreTextRect, DT_CENTER | DT_SINGLELINE | DT_VCENTER);
+    DrawTextA(memDC, ConvertIntToLPWSTR(lives), -1, (LPRECT) &livesTextRect, DT_CENTER | DT_SINGLELINE | DT_VCENTER);
+    if (isGamePaused) {
+        graphics->DrawImage(pausePic, gameBoxX0, gameBoxY0, gameBoxSide, gameBoxSide);
+    }
     CompletionFontDrawing(hFont);
     CompletionPaintingBEP();
+    //InvalidateRgn(hWnd, CreateRectRgn(0,0,0,0), false);
+}
 
-/*    std::cout << "$$$$$$$$$$$$$$$$ " << zeroRect.top << " " << zeroRect.bottom << " " << zeroRect.left << " "
-              << zeroRect.right << " $$$$$$$$$$$$$$$$" << std::endl;
-    InvalidateRect(hWnd, &zeroRect, false);*/
+void GameSession::RepaintController() {
+    if (resized) {
+        for(auto ball: balls) {
+            ball->SetNeedRepaint();
+        }
+        for(auto brick: bricks) {
+            brick->SetNeedRepaint();
+        }
+        for(auto bonus: bonuses) {
+            bonus->SetNeedRepaint();
+        }
+        platform->SetNeedRepaint();
+    }
+    if (isNeedGeneration) {
+        DeleteBalls();
+        DeleteBricks();
+        DeleteBonuses();
+        GenerateBricks(level);
+        balls.push_back(new Ball(gameZoneX0, gameZoneY0, ballPic, scale,
+                                 (platform->GetRealWidth() - platform->GetRealOffsetX()) / 2,
+                                 platform->GetOffsetY() - 1, DEFAULT_SPEED, DEFAULT_ANGLE));
+        isNeedGeneration=false;
+        isWaitForStarted=true;
+    }
+}
+
+void GameSession::DeleteBalls() {
+    for (Ball *ball: balls) {
+        delete ball;
+    }
+    balls.clear();
+}
+
+void GameSession::DeleteBricks() {
+    for (Brick *brick: bricks) {
+        delete brick;
+    }
+    bricks.clear();
+}
+
+void GameSession::DeleteBonuses() {
+    for (Bonus *bonus: bonuses) {
+        delete bonus;
+    }
+    bonuses.clear();
 }
 
 void GameSession::PreparerResize(LPMINMAXINFO &lpminmaxinfo) {
-    lpminmaxinfo->ptMinTrackSize.x = 540 + 20;
-    lpminmaxinfo->ptMinTrackSize.y = 540 + 40;
+    lpminmaxinfo->ptMinTrackSize.x = MIN_GAME_ZONE_SIDE + 20;
+    lpminmaxinfo->ptMinTrackSize.y = MIN_GAME_ZONE_SIDE + 40;
 }
 
 void GameSession::InitPaintBEP() {
     hdc = BeginPaint(hWnd, &ps);
     memDC = CreateCompatibleDC(hdc);
     hBM = CreateCompatibleBitmap(hdc, clientWidth, clientHeight);
-    oldbmp = (HBITMAP) SelectObject(memDC, hBM);
+    oldBmp = (HBITMAP) SelectObject(memDC, hBM);
     graphics = new Gdiplus::Graphics(memDC);
+    // Добавлено как костыль, если будет влиять на производительность - удалить
+    BitBlt(memDC, 0, 0, clientWidth, clientHeight, hdc, 0, 0, SRCCOPY);
 }
 
 void GameSession::CompletionPaintingBEP() {
     BitBlt(hdc, 0, 0, clientWidth, clientHeight, memDC, 0, 0, SRCCOPY);
-    SelectObject(memDC, oldbmp);
+    DeleteObject(SelectObject(memDC, oldBmp));
     DeleteObject(hBM);
     DeleteDC(memDC);
     EndPaint(hWnd, &ps);
@@ -149,19 +200,25 @@ void GameSession::CalculateGameBox(float &gameBoxX0, float &gameBoxY0, float &ga
         gameBoxSide = clientWidth;
         gameBoxY0 = (clientHeight - gameBoxSide) / 2;
         gameBoxX0 = 0;
-        scale = gameBoxSide / (float)gameZonePic->GetWidth();
+        scale = gameBoxSide / (float) gameZonePic->GetWidth();
     } else {
         gameBoxSide = clientHeight;
         gameBoxX0 = (clientWidth - gameBoxSide) / 2;
         gameBoxY0 = 0;
-        scale = gameBoxSide / (float)gameZonePic->GetHeight();
+        scale = gameBoxSide / (float) gameZonePic->GetHeight();
     }
 }
 
-LPCSTR GameSession::ConvertIntToStr(int value) {
+LPCSTR GameSession::ConvertIntToLPWSTR(int value) {
     std::stringstream s;
     s << std::scientific << value;
     return s.str().c_str();
+}
+
+std::string GameSession::ConvertIntToString(int value) {
+    std::stringstream s;
+    s << std::scientific << value;
+    return s.str();
 }
 
 void GameSession::CalculateFontProperties() {
@@ -187,7 +244,7 @@ void GameSession::CalculateFontProperties() {
 
 void GameSession::PrepareFontDrawing(HFONT &hfont) {
     hfont = CreateFontIndirect(&lf);
-    SelectObject(memDC, hfont);
+    DeleteObject(SelectObject(memDC, hfont));
     SetTextColor(memDC, RGB(255, 255, 255));
     SetBkColor(memDC, RGB(0, 0, 0));
 }
@@ -198,7 +255,7 @@ void GameSession::CompletionFontDrawing(HFONT &hfont) {
 
 void GameSession::CompletionPaintingGRP() {
     BitBlt(hdc, 0, 0, clientWidth, clientHeight, memDC, 0, 0, SRCCOPY);
-    SelectObject(memDC, oldbmp);
+    SelectObject(memDC, oldBmp);
     DeleteObject(hBM);
     DeleteDC(memDC);
     ReleaseDC(hWnd, hdc);
@@ -209,7 +266,7 @@ void GameSession::InitPaintGRP() {
     hdc = GetDC(hWnd);
     memDC = CreateCompatibleDC(hdc);
     hBM = CreateCompatibleBitmap(hdc, clientWidth, clientHeight);
-    oldbmp = (HBITMAP) SelectObject(memDC, hBM);
+    oldBmp = (HBITMAP) SelectObject(memDC, hBM);
     graphics = new Gdiplus::Graphics(memDC);
 }
 
@@ -217,3 +274,63 @@ void GameSession::CalculateGameZone() {
     gameZoneY0 = gameBoxY0 + DEFAULT_GAME_ZONE_TOP * scale;
     gameZoneX0 = gameBoxX0;
 }
+
+bool GameSession::GenerateBricks(int numOfLevel) {
+    int Width;
+    int Height;
+    std::string filename = RESOURCE_ROOT;
+    filename += LVL_DIR;
+    filename += ConvertIntToString(numOfLevel);
+    filename += LVL_EXTENSION;
+    std::ifstream reader(filename);
+    if (!reader.is_open()) return false;
+    reader >> Width;
+    reader >> Height;
+    for (int i = 0; i < Width; i++) {
+        for (int j = 0; j < Height; j++) {
+            int brickType;
+            reader >> brickType;
+            Brick *brick;
+            brick = BrickFactory(i, j, brickType);
+            if (brick == nullptr) continue;
+            bricks.push_back(brick);
+        }
+    }
+    reader.close();
+    return true;
+}
+
+Brick *GameSession::BrickFactory(int brickPosX, int brickPosY, int brickType) {
+    switch (brickType) {
+        case BRICK_NUM_NULL:
+            return nullptr;
+        case BRICK_NUM_PURPLE:
+            return new Brick(gameZoneX0, gameZoneY0, purpleBrickPic, scale, brickPosX * BRICK_WIDTH,
+                             brickPosY * BRICK_HEIGHT, BRICK_HITS_PURPLE, BRICK_PRICE_PURPLE);
+        case BRICK_NUM_BLUE:
+            return new Brick(gameZoneX0, gameZoneY0, blueBrickPic, scale, brickPosX * BRICK_WIDTH,
+                             brickPosY * BRICK_HEIGHT, BRICK_HITS_BLUE, BRICK_PRICE_BLUE);
+        case BRICK_NUM_GREEN:
+            return new Brick(gameZoneX0, gameZoneY0, greenBrickPic, scale, brickPosX * BRICK_WIDTH,
+                             brickPosY * BRICK_HEIGHT, BRICK_HITS_GREEN, BRICK_PRICE_GREEN);
+        case BRICK_NUM_YELLOW:
+            return new Brick(gameZoneX0, gameZoneY0, yellowBrickPic, scale, brickPosX * BRICK_WIDTH,
+                             brickPosY * BRICK_HEIGHT, BRICK_HITS_YELLOW, BRICK_PRICE_YELLOW);
+        case BRICK_NUM_RED:
+            return new Brick(gameZoneX0, gameZoneY0, redBrickPic, scale, brickPosX * BRICK_WIDTH,
+                             brickPosY * BRICK_HEIGHT, BRICK_HITS_RED, BRICK_PRICE_RED);
+        default:
+            return nullptr;
+    }
+}
+
+void GameSession::MovePlatform(float center) {
+    platform->Move(center);
+}
+
+void GameSession::SetResized() {
+    resized = true;
+}
+
+
+

@@ -7,4 +7,4 @@ set( ICON_NAME "icon.ico" )
 set( ICON_PATH "res/ico/${ICON_NAME}" )
 set(WIN32_EXECUTABLE)
 
-add_executable(Arkanoid main.cpp Platform.cpp Platform.h DrawableShape.cpp DrawableShape.h Brick.cpp Brick.h Resources.h Ball.cpp Ball.h GameSession.cpp GameSession.h)
+add_executable(Arkanoid main.cpp Platform.cpp Platform.h DrawableShape.cpp DrawableShape.h Brick.cpp Brick.h Complementary.h Ball.cpp Ball.h GameSession.cpp GameSession.h Bonus.cpp Bonus.h)

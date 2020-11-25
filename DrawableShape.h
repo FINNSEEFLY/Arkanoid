@@ -7,9 +7,10 @@
 
 #include "windows.h"
 #include "gdiplus.h"
+#include "Complementary.h"
 
 class DrawableShape {
-private:
+protected:
     float &gameZoneX0;
     float &gameZoneY0;
     Gdiplus::Image *image;
@@ -17,14 +18,17 @@ private:
     float offsetX;
     float offsetY;
     bool needRepaint = true;
+    FloatRECT rect;
 public:
     int GetWidth();
-
+    virtual void CalculateRECT();
     int GetHeight();
+    FloatRECT GetRECT();
+    void SetNeedRepaint();
 
-    void PaintOnGraphics(Gdiplus::Graphics &graphics);
+virtual void PaintOnGraphics(Gdiplus::Graphics &graphics);
 
-    DrawableShape(float &gameZoneX0, float &gameZoneY0, Gdiplus::Image *image, float &scale, float offsetX,
+DrawableShape(float &gameZoneX0, float &gameZoneY0, Gdiplus::Image *image, float &scale, float offsetX,
                   float offsetY);
 
 };

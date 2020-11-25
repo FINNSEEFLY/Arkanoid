@@ -3,17 +3,14 @@
 #include <windows.h>
 #include "gdiplus.h"
 #include "GameSession.h"
-#include "Resources.h"
+#include "Complementary.h"
 
 
 GameSession *gameSession;
+bool isLeftButtonDown = false;
 
 // Обработка событий главного окна
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
-
-void ShowBitmap(HWND hWnd, int &offsetX, int &offsetY);
-
-void CorrectOffset(int &offsetX, int &offsetY, int clientWidth, int clientHeight);
 
 int APIENTRY WinMain(HINSTANCE hInstance,
                      HINSTANCE hPrevInstance,
@@ -33,10 +30,10 @@ int APIENTRY WinMain(HINSTANCE hInstance,
     wcex.cbClsExtra = 0;
     wcex.cbWndExtra = 0;
     wcex.hInstance = hInstance;
-    wcex.hIcon = (HICON)LoadImage(hInstance, "res\\ico\\icon.ico", IMAGE_ICON, 256, 256, LR_LOADFROMFILE);
-    wcex.hIconSm = (HICON)LoadImage(hInstance, "res\\ico\\icon.ico", IMAGE_ICON, 256, 256, LR_LOADFROMFILE);
+    wcex.hIcon = (HICON) LoadImage(hInstance, "res\\ico\\icon.ico", IMAGE_ICON, 256, 256, LR_LOADFROMFILE);
+    wcex.hIconSm = (HICON) LoadImage(hInstance, "res\\ico\\icon.ico", IMAGE_ICON, 256, 256, LR_LOADFROMFILE);
     wcex.hCursor = LoadCursor(NULL, IDC_ARROW);
-    wcex.hbrBackground = (HBRUSH)GetStockObject(BLACK_BRUSH);
+    wcex.hbrBackground = (HBRUSH) GetStockObject(BLACK_BRUSH);
     wcex.lpszMenuName = NULL;
     wcex.lpszClassName = "ArkanoidWindowClass";
     wcex.hIconSm = wcex.hIcon;
@@ -49,7 +46,7 @@ int APIENTRY WinMain(HINSTANCE hInstance,
                         WS_OVERLAPPEDWINDOW,    // Стиль окна
                         CW_USEDEFAULT,          // Горизонтальная позиция окна
                         0,                      // Вертикальная позиция окна
-                        /*CW_USEDEFAULT*/1440,  // Ширина окна
+    /*CW_USEDEFAULT*/1440,  // Ширина окна
                         810,                    // Высота окна
                         NULL,                   // Дескриптор родительского или окна владельца
                         NULL,                   // Дескриптор меню или идентификатор дочернего окна
@@ -75,11 +72,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message,
         case WM_CREATE:
             gameSession = new GameSession(hWnd);
         case WM_PAINT:
-            std::cout<<"WM_PAINT"<<std::endl;
             gameSession->Repaint();
-            break;
-        case WM_ERASEBKGND:
-            return true;
             break;
         case WM_KEYDOWN:
             switch (wParam) {
@@ -89,6 +82,23 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message,
                 case VK_RIGHT:
                     //TODO: нажатие вправо
                     break;
+            }
+            break;
+        case WM_LBUTTONDOWN: {
+            int offsetX = LOWORD(lParam);
+            gameSession->MovePlatform(offsetX);
+            isLeftButtonDown = true;
+            InvalidateRect(hWnd, NULL, false);
+        }
+            break;
+        case WM_LBUTTONUP:
+            isLeftButtonDown = false;
+            break;
+        case WM_MOUSEMOVE:
+            if (isLeftButtonDown) {
+                int offsetX = LOWORD(lParam);
+                gameSession->MovePlatform(offsetX);
+                InvalidateRect(hWnd,NULL,false);
             }
             break;
         case WM_SIZE:

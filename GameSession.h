@@ -12,6 +12,7 @@
 #include "Ball.h"
 #include "Brick.h"
 #include "Platform.h"
+#include "Bonus.h"
 
 
 class GameSession {
@@ -19,9 +20,8 @@ private:
     HWND hWnd;
     HDC hdc, memDC;
     PAINTSTRUCT ps;
-    HBITMAP oldbmp, hBM;
+    HBITMAP oldBmp, hBM;
     RECT clientRect;
-/*    RECT zeroRect;*/
 
     float clientWidth, clientHeight;
     float scale;
@@ -51,30 +51,37 @@ private:
     Gdiplus::Graphics *graphics;
 
     Gdiplus::Image *backgroundPic;
-    Gdiplus::Image *PausePic;
+    Gdiplus::Image *pausePic;
     Gdiplus::Image *gameZonePic;
     Gdiplus::Image *platformPic;
     Gdiplus::Image *ballPic;
     Gdiplus::Image *blueBrickPic;
-    Gdiplus::Image *GrinBrickPic;
-    Gdiplus::Image *PurpleBrickPic;
-    Gdiplus::Image *RedBrickPic;
-    Gdiplus::Image *YellowBrickPic;
+    Gdiplus::Image *greenBrickPic;
+    Gdiplus::Image *purpleBrickPic;
+    Gdiplus::Image *redBrickPic;
+    Gdiplus::Image *yellowBrickPic;
 
-    std::vector <DrawableShape*> allDrawableObjects;
     std::vector <Ball*> balls;
     std::vector <Brick*> bricks;
+    std::vector <Bonus*> bonuses;
     Platform* platform;
 
     HFONT hFont;
 
     bool isGameStarted = false;
-    bool isGamePaused;
+    bool isGamePaused = false;
+    bool isNeedGeneration = false;
+    bool isWaitForStarted = false;
 
+    bool resized = false;
+
+    bool GenerateBricks(int numOfLevel);
+    Brick* BrickFactory(int brickPosX, int brickPosY, int brickType);
     void CalculateBackground(float &backgroundX0, float &backgroundY0, float &backgroundWidth, float &backgroundHeight);
     void CalculateGameBox(float &gameBoxX0, float &gameBoxY0, float &gameBoxSide, float &scale);
     void CalculateGameZone();
-    LPCSTR ConvertIntToStr(int value);
+    static LPCSTR ConvertIntToLPWSTR(int value);
+    static std::string ConvertIntToString(int value);
     void CompletionPaintingBEP();
     void InitPaintBEP();
     void CompletionPaintingGRP();
@@ -82,13 +89,19 @@ private:
     void CalculateFontProperties();
     void PrepareFontDrawing(HFONT &hfont);
     void CompletionFontDrawing(HFONT &hfont);
-    void BlockFactory();
+    void RepaintController();
+    void DeleteBalls();
+    void DeleteBricks();
+    void DeleteBonuses();
 public:
+
+    void SetResized();
     GameSession(const HWND hWnd);
     ~GameSession();
     void ResizeEvent();
     void PreparerResize(LPMINMAXINFO &lpminmaxinfo);
     void Repaint();
+    void MovePlatform(float center);
 };
 
 
