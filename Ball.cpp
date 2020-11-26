@@ -19,3 +19,8 @@ Ball::Ball(float &gameZoneX0, float &gameZoneY0, Gdiplus::Image *image, float &s
            float speed, float angle) : DrawableShape(gameZoneX0, gameZoneY0, image, scale, offsetX, offsetY),
                                        speed(speed), angle(angle) {}
 
+void Ball::SetOffsetX(float x) {
+    SetRepaintRECT();
+    offsetX = x;
+}
+

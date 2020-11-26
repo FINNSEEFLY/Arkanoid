@@ -55,6 +55,9 @@ GameSession::GameSession(const HWND hwnd) : hWnd(hwnd) {
 
     platform = new Platform(gameZoneX0, gameZoneY0, platformPic, scale, DEFAULT_PLATFORM_OFFSET_X,
                             DEFAULT_PLATFORM_OFFSET_Y);
+
+    brush = CreateSolidBrush(RGB(0, 0, 0));
+
 }
 
 GameSession::~GameSession() {
@@ -69,6 +72,12 @@ GameSession::~GameSession() {
     delete redBrickPic;
     delete yellowBrickPic;
     delete platform;
+
+    DeleteBricks();
+    DeleteBalls();
+    DeleteBonuses();
+
+    DeleteObject(brush);
 }
 
 void GameSession::ResizeEvent() {
@@ -87,15 +96,20 @@ void GameSession::ResizeEvent() {
 void GameSession::Repaint() {
     InitPaintBEP();
     PrepareFontDrawing(hFont);
-/*    std::cout << "__________________ " << ps.rcPaint.top << " " << ps.rcPaint.bottom << " " << ps.rcPaint.left << " "
-              << ps.rcPaint.right << " -------------" << std::endl;*/
+    std::cout << "__________________ " << ps.rcPaint.top << " " << ps.rcPaint.bottom << " " << ps.rcPaint.left << " "
+              << ps.rcPaint.right << " -------------" << std::endl;
 
-    RepaintController();
-    if (resized) {
+    if (ps.rcPaint.bottom - ps.rcPaint.top != clientHeight || ps.rcPaint.right - ps.rcPaint.left != clientWidth) {
+        isNeedRepaintBackground = true;
+    }
+    if (resized || isNeedRepaintBackground) {
         graphics->DrawImage(backgroundPic, backgroundX0, backgroundY0, backgroundWidth, backgroundHeight);
         graphics->DrawImage(gameZonePic, gameBoxX0, gameBoxY0, gameBoxSide, gameBoxSide);
+        isNeedRepaintBackground = false;
+        resized = false;
     }
-    platform->PaintOnGraphics(*graphics);
+    RepaintController();
+    //platform->PaintOnGraphics(*graphics);
     DrawTextA(memDC, ConvertIntToLPWSTR(level), -1, (LPRECT) &levelTextRect, DT_CENTER | DT_SINGLELINE | DT_VCENTER);
     DrawTextA(memDC, ConvertIntToLPWSTR(score), -1, (LPRECT) &scoreTextRect, DT_CENTER | DT_SINGLELINE | DT_VCENTER);
     DrawTextA(memDC, ConvertIntToLPWSTR(lives), -1, (LPRECT) &livesTextRect, DT_CENTER | DT_SINGLELINE | DT_VCENTER);
@@ -104,21 +118,14 @@ void GameSession::Repaint() {
     }
     CompletionFontDrawing(hFont);
     CompletionPaintingBEP();
-    //InvalidateRgn(hWnd, CreateRectRgn(0,0,0,0), false);
+    if (!isGamePaused && isGameStarted && !isWaitForStarted) {
+        InvalidateRgn(hWnd, NULL, false);
+    }
 }
 
 void GameSession::RepaintController() {
     if (resized) {
-        for(auto ball: balls) {
-            ball->SetNeedRepaint();
-        }
-        for(auto brick: bricks) {
-            brick->SetNeedRepaint();
-        }
-        for(auto bonus: bonuses) {
-            bonus->SetNeedRepaint();
-        }
-        platform->SetNeedRepaint();
+        SetAllNeedRepaint(true);
     }
     if (isNeedGeneration) {
         DeleteBalls();
@@ -126,11 +133,15 @@ void GameSession::RepaintController() {
         DeleteBonuses();
         GenerateBricks(level);
         balls.push_back(new Ball(gameZoneX0, gameZoneY0, ballPic, scale,
-                                 (platform->GetRealWidth() - platform->GetRealOffsetX()) / 2,
-                                 platform->GetOffsetY() - 1, DEFAULT_SPEED, DEFAULT_ANGLE));
-        isNeedGeneration=false;
-        isWaitForStarted=true;
+                                 platform->GetRealWidth() / 2 + platform->GetRealOffsetX() - ballPic->GetWidth() / 2,
+                                 platform->GetOffsetY() - 1 - ballPic->GetHeight(), DEFAULT_SPEED, DEFAULT_ANGLE));
+        isNeedGeneration = false;
+        isWaitForStarted = true;
+        SetAllNeedRepaint(true);
     }
+    SetAllNeedRepaint(false);
+    RepaintWhatsNeeded();
+
 }
 
 void GameSession::DeleteBalls() {
@@ -286,12 +297,12 @@ bool GameSession::GenerateBricks(int numOfLevel) {
     if (!reader.is_open()) return false;
     reader >> Width;
     reader >> Height;
-    for (int i = 0; i < Width; i++) {
-        for (int j = 0; j < Height; j++) {
+    for (int i = 0; i < Height; i++) {
+        for (int j = 0; j < Width; j++) {
             int brickType;
             reader >> brickType;
             Brick *brick;
-            brick = BrickFactory(i, j, brickType);
+            brick = BrickFactory(j, i, brickType);
             if (brick == nullptr) continue;
             bricks.push_back(brick);
         }
@@ -326,10 +337,77 @@ Brick *GameSession::BrickFactory(int brickPosX, int brickPosY, int brickType) {
 
 void GameSession::MovePlatform(float center) {
     platform->Move(center);
+    if (isWaitForStarted) {
+        balls[0]->SetOffsetX((platform->GetRealWidth() / 2 + platform->GetRealOffsetX() - ballPic->GetWidth() / 2));
+        balls[0]->SetNeedRepaint();
+    }
 }
 
 void GameSession::SetResized() {
     resized = true;
+    SetAllNeedRepaint(true);
+}
+
+void GameSession::SwitchPause() {
+    isGamePaused = !isGamePaused;
+    if (!isGamePaused) {
+        SetAllNeedRepaint(true);
+        StartTick = GetTickCount();
+    }
+    InvalidateRect(hWnd, NULL, false);
+}
+
+bool GameSession::IsPaused() {
+    return isGamePaused;
+}
+
+void GameSession::SetAllNeedRepaint(bool background) {
+    isNeedRepaintBackground = background;
+    for (auto ball: balls) {
+        ball->SetNeedRepaint();
+    }
+    for (auto brick: bricks) {
+        brick->SetNeedRepaint();
+    }
+    for (auto bonus: bonuses) {
+        bonus->SetNeedRepaint();
+    }
+    platform->SetNeedRepaint();
+}
+
+void GameSession::TryToStartGame() {
+    if (isWaitForStarted && !isGameStarted && !isGamePaused) {
+        isWaitForStarted = false;
+        isGameStarted = true;
+        InvalidateRect(hWnd, NULL, false);
+        StartTick = GetTickCount();
+    }
+}
+
+void GameSession::RepaintWhatsNeeded() {
+    for (auto ball: balls) {
+        if (ball->IsNeedRepaint()) {
+            FillRect(memDC,&ball->repaintRect,brush);
+            ball->PaintOnGraphics(*graphics);
+        }
+
+    }
+    for (auto brick: bricks) {
+        if (brick->IsNeedRepaint()) {
+            FillRect(memDC,&brick->repaintRect,brush);
+            brick->PaintOnGraphics(*graphics);
+        }
+    }
+    for (auto bonus: bonuses) {
+        if (bonus->IsNeedRepaint()) {
+            FillRect(memDC,&bonus->repaintRect,brush);
+            bonus->PaintOnGraphics(*graphics);
+        }
+    }
+    if (platform->IsNeedRepaint()) {
+        FillRect(memDC,&platform->repaintRect,brush);
+        platform->PaintOnGraphics(*graphics);
+    }
 }
 
 

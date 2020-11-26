@@ -19,6 +19,7 @@ public:
 
     Ball(float &gameZoneX0, float &gameZoneY0, Gdiplus::Image *image, float &scale, float offsetX, float offsetY,
          float speed, float angle);
+    void SetOffsetX(float x);
 };
 
 

@@ -5,8 +5,6 @@
 #ifndef ARKANOID_COMPLEMENTARY_H
 #define ARKANOID_COMPLEMENTARY_H
 
-
-
 #define RESOURCE_ROOT "res\\"
 #define LVL_DIR "lvl\\"
 #define LVL_EXTENSION ".txt"
@@ -19,7 +17,7 @@
 #define GREEN_BRICK_PIC_PATH L"res\\bricks\\GreenBrick.png"
 #define PURPLE_BRICK_PIC_PATH L"res\\bricks\\PurpleBrick.png"
 #define RED_BRICK_PIC_PATH L"res\\bricks\\RedBrick.png"
-#define YELLOW_BRICK_PIC_PATH L"res\\bricks\\RedBrick.png"
+#define YELLOW_BRICK_PIC_PATH L"res\\bricks\\YellowBrick.png"
 
 #define TEXT_ZONE_HEIGHT 65
 #define TEXT_TOP 64
@@ -63,18 +61,10 @@ struct BoolRECT {
     bool rightDown = false;
 };
 
-bool IsDotInRect(float x, float y, FloatRECT rect) {
-    return x>=rect.left && x<=rect.right && y>=rect.top && y<=rect.bottom;
-}
+bool IsDotInRect(float x, float y, FloatRECT rect);
 
-BoolRECT FindOccurrences(FloatRECT target, FloatRECT incoming) {
-    BoolRECT result;
-    result.leftUp = IsDotInRect(incoming.left, incoming.top, target);
-    result.leftDown = IsDotInRect(incoming.left, incoming.bottom, target);
-    result.rightUp = IsDotInRect(incoming.right, incoming.top, target);
-    result.rightDown = IsDotInRect(incoming.right, incoming.bottom, target);
-    return result;
-}
+BoolRECT FindOccurrences(FloatRECT target, FloatRECT incoming);
+
 
 
 #endif //ARKANOID_COMPLEMENTARY_H

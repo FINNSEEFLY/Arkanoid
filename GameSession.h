@@ -21,6 +21,7 @@ private:
     HDC hdc, memDC;
     PAINTSTRUCT ps;
     HBITMAP oldBmp, hBM;
+    HBRUSH brush;
     RECT clientRect;
 
     float clientWidth, clientHeight;
@@ -70,10 +71,14 @@ private:
 
     bool isGameStarted = false;
     bool isGamePaused = false;
-    bool isNeedGeneration = false;
+    bool isNeedGeneration = true;
     bool isWaitForStarted = false;
+    bool isNeedRepaintBackground = true;
 
     bool resized = false;
+
+    DWORD StartTick;
+    DWORD EndTick;
 
     bool GenerateBricks(int numOfLevel);
     Brick* BrickFactory(int brickPosX, int brickPosY, int brickType);
@@ -93,6 +98,8 @@ private:
     void DeleteBalls();
     void DeleteBricks();
     void DeleteBonuses();
+    void SetAllNeedRepaint(bool background);
+    void RepaintWhatsNeeded();
 public:
 
     void SetResized();
@@ -102,6 +109,9 @@ public:
     void PreparerResize(LPMINMAXINFO &lpminmaxinfo);
     void Repaint();
     void MovePlatform(float center);
+    void SwitchPause();
+    bool IsPaused();
+    void TryToStartGame();
 };
 
 

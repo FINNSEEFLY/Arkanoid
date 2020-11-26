@@ -19,12 +19,15 @@ protected:
     float offsetY;
     bool needRepaint = true;
     FloatRECT rect;
+    virtual void SetRepaintRECT();
 public:
     int GetWidth();
     virtual void CalculateRECT();
     int GetHeight();
     FloatRECT GetRECT();
     void SetNeedRepaint();
+    bool IsNeedRepaint();
+    RECT repaintRect;
 
 virtual void PaintOnGraphics(Gdiplus::Graphics &graphics);
 

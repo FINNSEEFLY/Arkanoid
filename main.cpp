@@ -82,20 +82,28 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message,
                 case VK_RIGHT:
                     //TODO: нажатие вправо
                     break;
+                case VK_ESCAPE:
+                    gameSession->SwitchPause();
+                    break;
+                case VK_SPACE:
+                    gameSession->TryToStartGame();
+                    break;
             }
             break;
         case WM_LBUTTONDOWN: {
-            int offsetX = LOWORD(lParam);
-            gameSession->MovePlatform(offsetX);
             isLeftButtonDown = true;
-            InvalidateRect(hWnd, NULL, false);
+            if (!gameSession->IsPaused()) {
+                int offsetX = LOWORD(lParam);
+                gameSession->MovePlatform(offsetX);
+                InvalidateRect(hWnd, NULL, false);
+            }
         }
             break;
         case WM_LBUTTONUP:
             isLeftButtonDown = false;
             break;
         case WM_MOUSEMOVE:
-            if (isLeftButtonDown) {
+            if (isLeftButtonDown && !gameSession->IsPaused()) {
                 int offsetX = LOWORD(lParam);
                 gameSession->MovePlatform(offsetX);
                 InvalidateRect(hWnd,NULL,false);
