@@ -100,7 +100,7 @@ void GameSession::Repaint() {
               << ps.rcPaint.right << " -------------" << std::endl;
 
     if (ps.rcPaint.bottom - ps.rcPaint.top != clientHeight || ps.rcPaint.right - ps.rcPaint.left != clientWidth) {
-        isNeedRepaintBackground = true;
+        SetAllNeedRepaint(true);
     }
     if (resized || isNeedRepaintBackground) {
         graphics->DrawImage(backgroundPic, backgroundX0, backgroundY0, backgroundWidth, backgroundHeight);
@@ -109,7 +109,6 @@ void GameSession::Repaint() {
         resized = false;
     }
     RepaintController();
-    //platform->PaintOnGraphics(*graphics);
     DrawTextA(memDC, ConvertIntToLPWSTR(level), -1, (LPRECT) &levelTextRect, DT_CENTER | DT_SINGLELINE | DT_VCENTER);
     DrawTextA(memDC, ConvertIntToLPWSTR(score), -1, (LPRECT) &scoreTextRect, DT_CENTER | DT_SINGLELINE | DT_VCENTER);
     DrawTextA(memDC, ConvertIntToLPWSTR(lives), -1, (LPRECT) &livesTextRect, DT_CENTER | DT_SINGLELINE | DT_VCENTER);
@@ -139,7 +138,16 @@ void GameSession::RepaintController() {
         isWaitForStarted = true;
         SetAllNeedRepaint(true);
     }
-    SetAllNeedRepaint(false);
+    if (isGameStarted && !isGamePaused) {
+        EndTick = GetTickCount();
+        for (;StartTick<=EndTick;StartTick++) {
+            for (auto ball: balls) {
+                for (auto brick: bricks) {
+
+                }
+            }
+        }
+    }
     RepaintWhatsNeeded();
 
 }
@@ -220,17 +228,6 @@ void GameSession::CalculateGameBox(float &gameBoxX0, float &gameBoxY0, float &ga
     }
 }
 
-LPCSTR GameSession::ConvertIntToLPWSTR(int value) {
-    std::stringstream s;
-    s << std::scientific << value;
-    return s.str().c_str();
-}
-
-std::string GameSession::ConvertIntToString(int value) {
-    std::stringstream s;
-    s << std::scientific << value;
-    return s.str();
-}
 
 void GameSession::CalculateFontProperties() {
     lf.lfHeight = DEFAULT_FONT_HEIGHT * scale;
@@ -339,7 +336,6 @@ void GameSession::MovePlatform(float center) {
     platform->Move(center);
     if (isWaitForStarted) {
         balls[0]->SetOffsetX((platform->GetRealWidth() / 2 + platform->GetRealOffsetX() - ballPic->GetWidth() / 2));
-        balls[0]->SetNeedRepaint();
     }
 }
 
@@ -384,28 +380,54 @@ void GameSession::TryToStartGame() {
     }
 }
 
+
 void GameSession::RepaintWhatsNeeded() {
+    FillWhatsNeed();
+    PaintWhatsNeed();
+}
+
+void GameSession::FillWhatsNeed() {
+    for (auto ball: balls) {
+        if (ball->IsWasFilled()) {
+            FillRect(memDC, &ball->repaintRect, brush);
+        }
+
+    }
+    for (auto brick: bricks) {
+        if (brick->IsWasFilled()) {
+            FillRect(memDC, &brick->repaintRect, brush);
+        }
+    }
+    for (auto bonus: bonuses) {
+        if (bonus->IsWasFilled()) {
+            FillRect(memDC, &bonus->repaintRect, brush);
+        }
+    }
+
+    if (platform->IsWasFilled()) {
+        FillRect(memDC, &platform->repaintRect, brush);
+    }
+
+}
+
+void GameSession::PaintWhatsNeed() {
     for (auto ball: balls) {
         if (ball->IsNeedRepaint()) {
-            FillRect(memDC,&ball->repaintRect,brush);
             ball->PaintOnGraphics(*graphics);
         }
 
     }
     for (auto brick: bricks) {
         if (brick->IsNeedRepaint()) {
-            FillRect(memDC,&brick->repaintRect,brush);
             brick->PaintOnGraphics(*graphics);
         }
     }
     for (auto bonus: bonuses) {
         if (bonus->IsNeedRepaint()) {
-            FillRect(memDC,&bonus->repaintRect,brush);
             bonus->PaintOnGraphics(*graphics);
         }
     }
     if (platform->IsNeedRepaint()) {
-        FillRect(memDC,&platform->repaintRect,brush);
         platform->PaintOnGraphics(*graphics);
     }
 }

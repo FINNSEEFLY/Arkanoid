@@ -18,6 +18,7 @@ void DrawableShape::PaintOnGraphics(Gdiplus::Graphics &graphics) {
                        this->GetHeight() * scale);
     needRepaint = false;
     SetRepaintRECT();
+    wasFilled = false;
 }
 
 DrawableShape::DrawableShape(float &gameZoneX0, float &gameZoneY0, Gdiplus::Image *image, float &scale, float offsetX,
@@ -48,5 +49,10 @@ void DrawableShape::SetRepaintRECT() {
     repaintRect.right = ceil((offsetX + image->GetWidth()) * scale + gameZoneX0);
     repaintRect.bottom = ceil((offsetY + image->GetHeight()) * scale + gameZoneY0);
     repaintRect.top = round(offsetY * scale + gameZoneY0);
+    wasFilled = true;
+}
+
+bool DrawableShape::IsWasFilled() {
+    return wasFilled;
 }
 

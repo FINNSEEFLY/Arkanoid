@@ -18,6 +18,7 @@ protected:
     float offsetX;
     float offsetY;
     bool needRepaint = true;
+    bool wasFilled = false;
     FloatRECT rect;
     virtual void SetRepaintRECT();
 public:
@@ -27,6 +28,7 @@ public:
     FloatRECT GetRECT();
     void SetNeedRepaint();
     bool IsNeedRepaint();
+    bool IsWasFilled();
     RECT repaintRect;
 
 virtual void PaintOnGraphics(Gdiplus::Graphics &graphics);

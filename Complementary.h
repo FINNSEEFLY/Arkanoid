@@ -47,6 +47,10 @@
 #define DEFAULT_SPEED 1
 #define DEFAULT_ANGLE 45
 
+#include "iostream"
+#include "Windows.h"
+#include "sstream"
+
 struct FloatRECT {
     float left;
     float top;
@@ -65,6 +69,9 @@ bool IsDotInRect(float x, float y, FloatRECT rect);
 
 BoolRECT FindOccurrences(FloatRECT target, FloatRECT incoming);
 
+LPCSTR ConvertIntToLPWSTR(int value);
+
+std::string ConvertIntToString(int value);
 
 
 #endif //ARKANOID_COMPLEMENTARY_H

@@ -13,6 +13,7 @@ void Ball::CalculateNextPoint(int t) {
     offsetX += s;
     offsetY += h;
     CalculateRECT();
+    SetRepaintRECT();
 }
 
 Ball::Ball(float &gameZoneX0, float &gameZoneY0, Gdiplus::Image *image, float &scale, float offsetX, float offsetY,
@@ -20,7 +21,10 @@ Ball::Ball(float &gameZoneX0, float &gameZoneY0, Gdiplus::Image *image, float &s
                                        speed(speed), angle(angle) {}
 
 void Ball::SetOffsetX(float x) {
-    SetRepaintRECT();
+    if (!IsWasFilled()) {
+        SetRepaintRECT();
+    }
+    SetNeedRepaint();
     offsetX = x;
 }
 

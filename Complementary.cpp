@@ -16,3 +16,14 @@ BoolRECT FindOccurrences(FloatRECT target, FloatRECT incoming) {
     result.rightDown = IsDotInRect(incoming.right, incoming.bottom, target);
     return result;
 }
+LPCSTR ConvertIntToLPWSTR(int value) {
+    std::stringstream s;
+    s << std::scientific << value;
+    return s.str().c_str();
+}
+
+std::string ConvertIntToString(int value) {
+    std::stringstream s;
+    s << std::scientific << value;
+    return s.str();
+}

@@ -85,8 +85,6 @@ private:
     void CalculateBackground(float &backgroundX0, float &backgroundY0, float &backgroundWidth, float &backgroundHeight);
     void CalculateGameBox(float &gameBoxX0, float &gameBoxY0, float &gameBoxSide, float &scale);
     void CalculateGameZone();
-    static LPCSTR ConvertIntToLPWSTR(int value);
-    static std::string ConvertIntToString(int value);
     void CompletionPaintingBEP();
     void InitPaintBEP();
     void CompletionPaintingGRP();
@@ -100,6 +98,8 @@ private:
     void DeleteBonuses();
     void SetAllNeedRepaint(bool background);
     void RepaintWhatsNeeded();
+    void FillWhatsNeed();
+    void PaintWhatsNeed();
 public:
 
     void SetResized();
