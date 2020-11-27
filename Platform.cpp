@@ -24,9 +24,7 @@ void Platform::PaintOnGraphics(Gdiplus::Graphics &graphics) {
     graphics.DrawImage(image, gameZoneX0 + GetRealOffsetX() * scale, gameZoneY0 + offsetY * scale,
                        GetRealWidth() * scale,
                        this->GetHeight() * scale);
-    needRepaint = false;
-    SetRepaintRECT();
-    wasFilled = false;
+    EndPaint();
 }
 
 float Platform::GetRealWidth() {
@@ -65,6 +63,13 @@ void Platform::SetRepaintRECT() {
     repaintRect.bottom = ceil(gameZoneY0 + (offsetY + GetHeight()) * scale);
     repaintRect.top = round(gameZoneY0 + offsetY * scale);
     wasFilled = true;
+}
+
+void Platform::CalculateRECT() {
+    rect.left = GetRealOffsetX();
+    rect.right = GetRealOffsetX() + GetRealWidth();
+    rect.bottom = offsetY + image->GetHeight();
+    rect.top = offsetY;
 }
 
 

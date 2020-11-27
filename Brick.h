@@ -46,7 +46,8 @@ public:
         CalculateRECT();
     };
     bool IsDestroyed();
-    int GetNumOfIntersection(Ball ball);
+    bool HitTheBrick();
+    int GetPrice();
 };
 
 

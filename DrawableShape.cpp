@@ -16,8 +16,14 @@ int DrawableShape::GetWidth() {
 void DrawableShape::PaintOnGraphics(Gdiplus::Graphics &graphics) {
     graphics.DrawImage(image, gameZoneX0 + offsetX * scale, gameZoneY0 + offsetY * scale, this->GetWidth() * scale,
                        this->GetHeight() * scale);
+    EndPaint();
+}
+
+
+void DrawableShape::EndPaint() {
     needRepaint = false;
     SetRepaintRECT();
+    CalculateRECT();
     wasFilled = false;
 }
 
@@ -25,9 +31,7 @@ DrawableShape::DrawableShape(float &gameZoneX0, float &gameZoneY0, Gdiplus::Imag
                              float offsetY) : gameZoneX0(gameZoneX0), gameZoneY0(gameZoneY0), image(image),
                                               scale(scale), offsetX(offsetX), offsetY(offsetY) {}
 
-FloatRECT DrawableShape::GetRECT() {
-    return rect;
-}
+
 
 void DrawableShape::CalculateRECT() {
     rect.left = offsetX;
@@ -55,4 +59,9 @@ void DrawableShape::SetRepaintRECT() {
 bool DrawableShape::IsWasFilled() {
     return wasFilled;
 }
+
+FloatRECT DrawableShape::GetRECT() {
+    return rect;
+}
+
 

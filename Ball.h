@@ -14,12 +14,22 @@ private:
     float angle;
     float prevOffsetX;
     float prevOffsetY;
+    bool destroyed = false;
+    void PrepareToRelocate();
 public:
     void CalculateNextPoint(int t);
 
     Ball(float &gameZoneX0, float &gameZoneY0, Gdiplus::Image *image, float &scale, float offsetX, float offsetY,
          float speed, float angle);
     void SetOffsetX(float x);
+    void SetOffsetY(float y);
+    void SetOffsetX2(float x);
+    void SetOffsetY2(float y);
+    float GetAngle();
+    bool IsDestroyed();
+    void SetDestroyed();
+    void SetAngle(float angle);
+    int GetNumOfIntersection(FloatRECT TargetRect);
 };
 
 

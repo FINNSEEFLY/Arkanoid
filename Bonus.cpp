@@ -3,3 +3,11 @@
 //
 
 #include "Bonus.h"
+
+bool Bonus::IsDestroyed() {
+    return destroyed;
+}
+
+void Bonus::SetDestroyed() {
+    destroyed = true;
+}

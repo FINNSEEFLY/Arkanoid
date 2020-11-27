@@ -3,6 +3,7 @@
 //
 
 #include "Complementary.h"
+#include "math.h"
 
 bool IsDotInRect(float x, float y, FloatRECT rect) {
     return x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom;
@@ -26,4 +27,8 @@ std::string ConvertIntToString(int value) {
     std::stringstream s;
     s << std::scientific << value;
     return s.str();
+}
+
+float ConvertDegToRad(float value) {
+    return value * M_PI / 180;
 }

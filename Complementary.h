@@ -19,7 +19,6 @@
 #define RED_BRICK_PIC_PATH L"res\\bricks\\RedBrick.png"
 #define YELLOW_BRICK_PIC_PATH L"res\\bricks\\YellowBrick.png"
 
-#define TEXT_ZONE_HEIGHT 65
 #define TEXT_TOP 64
 #define TEXT_BOTTOM 128
 #define LEVEL_LEFT 20
@@ -28,6 +27,8 @@
 #define SCORE_RIGHT 863
 #define LIVES_LEFT 923
 #define LIVES_RIGHT 1059
+
+#define BALL_SIZE 32
 
 #define DEFAULT_FONT_HEIGHT 55
 #define DEFAULT_FONT_WIDTH 23
@@ -45,7 +46,45 @@
 #define DEFAULT_PLATFORM_OFFSET_Y 890
 
 #define DEFAULT_SPEED 1
-#define DEFAULT_ANGLE 45
+#define DEFAULT_ANGLE 315
+#define DEFAULT_TIME 1
+
+#define INTERSECTION_LEFT 1
+#define INTERSECTION_LEFT_AND_UP 2
+#define INTERSECTION_UP 3
+#define INTERSECTION_RIGHT_AND_UP 4
+#define INTERSECTION_RIGHT 5
+#define INTERSECTION_RIGHT_AND_DOWN 6
+#define INTERSECTION_DOWN 7
+#define INTERSECTION_LEFT_AND_DOWN 8
+#define INTERSECTION_INSIDE 9
+#define INTERSECTION_NONE 0
+
+#define FLOAT_MAX_VALUE 100000;
+#define FLOAT_MIN_VALUE -100000;
+
+#define LEFT_SIDE_LEFT FLOAT_MIN_VALUE;
+#define LEFT_SIDE_RIGHT -1
+#define LEFT_SIDE_TOP 0
+#define LEFT_SIDE_BOTTOM 931
+
+#define RIGHT_SIDE_LEFT DEFAULT_GAME_ZONE_WIDTH
+#define RIGHT_SIDE_RIGHT FLOAT_MAX_VALUE
+#define RIGHT_SIDE_TOP 0
+#define RIGHT_SIDE_BOTTOM 931
+
+#define DOWN_SIDE_LEFT -1
+#define DOWN_SIDE_RIGHT DEFAULT_GAME_ZONE_WIDTH
+#define DOWN_SIDE_TOP 930 + BALL_SIZE
+#define DOWN_SIDE_BOTTOM FLOAT_MAX_VALUE
+
+#define UP_SIDE_LEFT -1
+#define UP_SIDE_RIGHT DEFAULT_GAME_ZONE_WIDTH
+#define UP_SIDE_TOP FLOAT_MIN_VALUE
+#define UP_SIDE_BOTTOM 0
+
+
+
 
 #include "iostream"
 #include "Windows.h"
@@ -72,6 +111,9 @@ BoolRECT FindOccurrences(FloatRECT target, FloatRECT incoming);
 LPCSTR ConvertIntToLPWSTR(int value);
 
 std::string ConvertIntToString(int value);
+
+float ConvertDegToRad(float value);
+
 
 
 #endif //ARKANOID_COMPLEMENTARY_H

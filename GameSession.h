@@ -80,7 +80,14 @@ private:
     DWORD StartTick;
     DWORD EndTick;
 
-    bool GenerateBricks(int numOfLevel);
+    int numOfBlocks;
+    int numOfBalls;
+    FloatRECT leftSide;
+    FloatRECT rightSide;
+    FloatRECT upSide;
+    FloatRECT downSide;
+
+    int GenerateBricks(int numOfLevel);
     Brick* BrickFactory(int brickPosX, int brickPosY, int brickType);
     void CalculateBackground(float &backgroundX0, float &backgroundY0, float &backgroundWidth, float &backgroundHeight);
     void CalculateGameBox(float &gameBoxX0, float &gameBoxY0, float &gameBoxSide, float &scale);
@@ -100,6 +107,9 @@ private:
     void RepaintWhatsNeeded();
     void FillWhatsNeed();
     void PaintWhatsNeed();
+    static void CorrectOffsetAndAngle(Ball *ball, FloatRECT barrierRect, int numOfIntersection);
+    void DeleteWhatsNeeded();
+    static void CorrectOffsetAndAngleByPlatform(Ball *ball, FloatRECT platform, int numOfIntersection);
 public:
 
     void SetResized();

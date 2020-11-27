@@ -7,6 +7,7 @@
 #include "GameSession.h"
 #include "iostream"
 #include "Complementary.h"
+#include "algorithm"
 
 
 GameSession::GameSession(const HWND hwnd) : hWnd(hwnd) {
@@ -57,6 +58,26 @@ GameSession::GameSession(const HWND hwnd) : hWnd(hwnd) {
                             DEFAULT_PLATFORM_OFFSET_Y);
 
     brush = CreateSolidBrush(RGB(0, 0, 0));
+
+    leftSide.left = LEFT_SIDE_LEFT;
+    leftSide.right = LEFT_SIDE_RIGHT;
+    leftSide.top = LEFT_SIDE_TOP;
+    leftSide.bottom = LEFT_SIDE_BOTTOM;
+
+    rightSide.left = RIGHT_SIDE_LEFT;
+    rightSide.right = RIGHT_SIDE_RIGHT;
+    rightSide.top = RIGHT_SIDE_TOP;
+    rightSide.bottom = RIGHT_SIDE_BOTTOM;
+
+    downSide.left = DOWN_SIDE_LEFT;
+    downSide.right = DOWN_SIDE_RIGHT;
+    downSide.top = DOWN_SIDE_TOP;
+    downSide.bottom = DOWN_SIDE_BOTTOM;
+
+    upSide.left = UP_SIDE_LEFT;
+    upSide.right = UP_SIDE_RIGHT;
+    upSide.top = UP_SIDE_TOP;
+    upSide.bottom = UP_SIDE_BOTTOM;
 
 }
 
@@ -130,25 +151,44 @@ void GameSession::RepaintController() {
         DeleteBalls();
         DeleteBricks();
         DeleteBonuses();
-        GenerateBricks(level);
+        numOfBlocks = GenerateBricks(level);
         balls.push_back(new Ball(gameZoneX0, gameZoneY0, ballPic, scale,
                                  platform->GetRealWidth() / 2 + platform->GetRealOffsetX() - ballPic->GetWidth() / 2,
                                  platform->GetOffsetY() - 1 - ballPic->GetHeight(), DEFAULT_SPEED, DEFAULT_ANGLE));
+        numOfBalls = 1;
         isNeedGeneration = false;
         isWaitForStarted = true;
         SetAllNeedRepaint(true);
     }
     if (isGameStarted && !isGamePaused) {
         EndTick = GetTickCount();
-        for (;StartTick<=EndTick;StartTick++) {
+        for (; StartTick <= EndTick; StartTick++) {
             for (auto ball: balls) {
+                ball->CalculateNextPoint(DEFAULT_TIME);
+                // проверка платформы
+                // проверка стен
+                CorrectOffsetAndAngleByPlatform(ball, platform->GetRECT(),
+                                                ball->GetNumOfIntersection(platform->GetRECT()));
+                CorrectOffsetAndAngle(ball, leftSide, ball->GetNumOfIntersection(leftSide));
+                CorrectOffsetAndAngle(ball, rightSide, ball->GetNumOfIntersection(rightSide));
+                CorrectOffsetAndAngle(ball, upSide, ball->GetNumOfIntersection(upSide));
+                if (ball->GetNumOfIntersection(downSide) != 0) {
+                    numOfBalls--;
+                    ball->SetDestroyed();
+                }
                 for (auto brick: bricks) {
-
+                    if (brick->IsDestroyed()) continue;
+                    int numOfIntersection = ball->GetNumOfIntersection(brick->GetRECT());
+                    if (numOfIntersection == 0) continue;
+                    numOfBlocks -= brick->HitTheBrick();
+                    if (brick->IsDestroyed()) score += brick->GetPrice();
+                    CorrectOffsetAndAngle(ball, brick->GetRECT(), numOfIntersection);
                 }
             }
         }
     }
     RepaintWhatsNeeded();
+    DeleteWhatsNeeded();
 
 }
 
@@ -283,15 +323,16 @@ void GameSession::CalculateGameZone() {
     gameZoneX0 = gameBoxX0;
 }
 
-bool GameSession::GenerateBricks(int numOfLevel) {
+int GameSession::GenerateBricks(int numOfLevel) {
     int Width;
     int Height;
+    int numOfBlocks = 0;
     std::string filename = RESOURCE_ROOT;
     filename += LVL_DIR;
     filename += ConvertIntToString(numOfLevel);
     filename += LVL_EXTENSION;
     std::ifstream reader(filename);
-    if (!reader.is_open()) return false;
+    if (!reader.is_open()) return -1;
     reader >> Width;
     reader >> Height;
     for (int i = 0; i < Height; i++) {
@@ -302,10 +343,11 @@ bool GameSession::GenerateBricks(int numOfLevel) {
             brick = BrickFactory(j, i, brickType);
             if (brick == nullptr) continue;
             bricks.push_back(brick);
+            numOfBlocks++;
         }
     }
     reader.close();
-    return true;
+    return numOfBlocks;
 }
 
 Brick *GameSession::BrickFactory(int brickPosX, int brickPosY, int brickType) {
@@ -360,10 +402,14 @@ bool GameSession::IsPaused() {
 void GameSession::SetAllNeedRepaint(bool background) {
     isNeedRepaintBackground = background;
     for (auto ball: balls) {
-        ball->SetNeedRepaint();
+        if (!ball->IsDestroyed()) {
+            ball->SetNeedRepaint();
+        }
     }
     for (auto brick: bricks) {
-        brick->SetNeedRepaint();
+        if (!brick->IsDestroyed()) {
+            brick->SetNeedRepaint();
+        }
     }
     for (auto bonus: bonuses) {
         bonus->SetNeedRepaint();
@@ -407,18 +453,17 @@ void GameSession::FillWhatsNeed() {
     if (platform->IsWasFilled()) {
         FillRect(memDC, &platform->repaintRect, brush);
     }
-
 }
 
 void GameSession::PaintWhatsNeed() {
     for (auto ball: balls) {
-        if (ball->IsNeedRepaint()) {
+        if (ball->IsNeedRepaint() && !ball->IsDestroyed()) {
             ball->PaintOnGraphics(*graphics);
         }
 
     }
     for (auto brick: bricks) {
-        if (brick->IsNeedRepaint()) {
+        if (brick->IsNeedRepaint() && !brick->IsDestroyed()) {
             brick->PaintOnGraphics(*graphics);
         }
     }
@@ -429,6 +474,139 @@ void GameSession::PaintWhatsNeed() {
     }
     if (platform->IsNeedRepaint()) {
         platform->PaintOnGraphics(*graphics);
+    }
+}
+
+void GameSession::CorrectOffsetAndAngle(Ball *ball, FloatRECT barrierRect, int numOfIntersection) {
+    float angle = ball->GetAngle();
+    switch (numOfIntersection) {
+        case INTERSECTION_NONE:
+            break;
+        case INTERSECTION_LEFT: {
+            ball->SetOffsetX2(barrierRect.left);
+            if (angle == 0) {
+                ball->SetAngle(fmod(angle + 180, 360));
+            } else if (angle > 0 && angle < 90) {
+                ball->SetAngle(180 - angle);
+            } else if (angle > 270 && angle < 360) {
+                ball->SetAngle(540 - angle);
+            }
+        }
+            break;
+        case INTERSECTION_UP: {
+            ball->SetOffsetY2(barrierRect.top);
+            if (angle == 90) {
+                ball->SetAngle(fmod(angle + 180, 360));
+            } else if (angle > 0 && angle < 90) {
+                ball->SetAngle(360 - angle);
+            } else if (angle > 90 && angle < 180) {
+                ball->SetAngle(360 - angle);
+            }
+
+        }
+            break;
+        case INTERSECTION_RIGHT: {
+            ball->SetOffsetX(barrierRect.right);
+            if (angle == 180) {
+                ball->SetAngle(fmod(angle + 180, 360));
+            } else if (angle > 90 && angle < 180) {
+                ball->SetAngle(180 - angle);
+            } else if (angle > 180 && angle < 270) {
+                ball->SetAngle(540 - angle);
+            }
+        }
+            break;
+        case INTERSECTION_DOWN: {
+            ball->SetOffsetY(barrierRect.bottom);
+            if (angle == 270) {
+                ball->SetAngle(fmod(angle + 180, 360));
+            } else if (angle > 180 && angle < 270) {
+                ball->SetAngle(360 - angle);
+            } else if (angle > 270 && angle < 360) {
+                ball->SetAngle(360 - angle);
+            }
+        }
+            break;
+        case INTERSECTION_LEFT_AND_UP: {
+            ball->SetOffsetX2(barrierRect.left);
+            ball->SetOffsetY2(barrierRect.top);
+            if (angle == 45) {
+                ball->SetAngle(fmod(angle + 180, 360));
+            }
+
+        }
+            break;
+
+        case INTERSECTION_RIGHT_AND_UP: {
+            ball->SetOffsetX(barrierRect.right);
+            ball->SetOffsetY2(barrierRect.top);
+            if (angle == 135) {
+                ball->SetAngle(fmod(angle + 180, 360));
+            }
+        }
+            break;
+        case INTERSECTION_RIGHT_AND_DOWN: {
+            ball->SetOffsetX(barrierRect.right);
+            ball->SetOffsetY(barrierRect.bottom);
+            if (angle == 225) {
+                ball->SetAngle(fmod(angle + 180, 360));
+            }
+        }
+            break;
+
+        case INTERSECTION_LEFT_AND_DOWN: {
+            ball->SetOffsetX2(barrierRect.left);
+            ball->SetOffsetY(barrierRect.bottom);
+            if (angle == 315) {
+                ball->SetAngle(fmod(angle + 180, 360));
+            }
+        }
+            break;
+        case INTERSECTION_INSIDE: {
+            std::cout << "INTERSECTION_INSIDE" << std::endl;
+        }
+            break;
+    }
+}
+
+void GameSession::DeleteWhatsNeeded() {
+    for (auto ball: balls) {
+        if (ball->IsDestroyed()) {
+            std::vector<Ball *>::iterator newEnd = std::remove(balls.begin(), balls.end(), ball);
+            balls.erase(newEnd, balls.end());
+            delete ball;
+        }
+    }
+    for (auto brick: bricks) {
+        if (brick->IsDestroyed()) {
+            std::vector<Brick *>::iterator newEnd = std::remove(bricks.begin(), bricks.end(), brick);
+            bricks.erase(newEnd, bricks.end());
+            delete brick;
+        }
+    }
+    for (auto bonus: bonuses) {
+        if (bonus->IsDestroyed()) {
+            std::vector<Bonus *>::iterator newEnd = std::remove(bonuses.begin(), bonuses.end(), bonus);
+            bonuses.erase(newEnd, bonuses.end());
+            delete bonus;
+        }
+    }
+}
+
+void GameSession::CorrectOffsetAndAngleByPlatform(Ball *ball, FloatRECT platform, int numOfIntersection) {
+    float angle = ball->GetAngle();
+    switch (numOfIntersection) {
+        case INTERSECTION_NONE:
+            break;
+        case INTERSECTION_UP: {
+            ball->SetOffsetY2(platform.top);
+            FloatRECT ballRect = ball->GetRECT();
+            float ballCenter = (ballRect.right - ballRect.left) / 2;
+            float platformCenter = (platform.right - platform.left) / 2;
+            float distanceBtwBallAndPlatform = abs(ballCenter-platformCenter);
+            float dotCoefficient = distanceBtwBallAndPlatform / platformCenter;
+            ball->SetAngle(360 - angle * dotCoefficient);
+        }
     }
 }
 

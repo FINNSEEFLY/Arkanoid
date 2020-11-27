@@ -19,7 +19,12 @@ enum BonusType {
 };
 
 class Bonus : public DrawableShape {
+private:
     BonusType bonusType;
+    bool destroyed = false;
+public:
+    bool IsDestroyed();
+    void SetDestroyed();
 };
 
 

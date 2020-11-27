@@ -21,6 +21,7 @@ protected:
     bool wasFilled = false;
     FloatRECT rect;
     virtual void SetRepaintRECT();
+    void EndPaint();
 public:
     int GetWidth();
     virtual void CalculateRECT();
