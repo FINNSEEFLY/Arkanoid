@@ -520,7 +520,7 @@ void GameSession::PaintWhatsNeed() {
         }
     }
     for (auto bonus: bonuses) {
-        if (bonus->IsNeedRepaint()) {
+        if (bonus->IsNeedRepaint() && !bonus->IsDestroyed()) {
             bonus->PaintOnGraphics(*graphics);
         }
     }
@@ -737,7 +737,7 @@ void GameSession::UseBonus(Bonus *bonus) {
             break;
         case BONUS_CUT: {
             platform->DecSizeCoefficient();
-        }
+        } break;
         case BONUS_MORE_BALLS: {
             std::vector<Ball *> tmpBalls;
             for (auto ball:balls) {
@@ -747,10 +747,9 @@ void GameSession::UseBonus(Bonus *bonus) {
                 tmpBalls.push_back(newBall);
             }
             tmpBalls.clear();
-        }
-        bonus->SetDestroyed();
-        bonus->SetRepaintRECT();
+        } break;
     }
+    bonus->SetDestroyed();
 }
 
 void GameSession::GameProcessing() {
@@ -807,12 +806,14 @@ void GameSession::GameProcessing() {
             }
         }
         for (auto bonus:bonuses) {
+            if (bonus->IsDestroyed()) continue;
             bonus->CalculateNextPoint(DEFAULT_TIME);
             if (bonus->GetNumOfIntersection(platform->GetRECT())) {
                 UseBonus(bonus); continue;
             }
             if (bonus->GetNumOfIntersection(downSide) == INTERSECTION_DOWN) {
                 bonus->SetDestroyed();
+                continue;
             }
             for(auto brick:bricks) {
                 int numOfIntersection = bonus->GetNumOfIntersection(brick->GetRECT());
