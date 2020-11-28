@@ -10,13 +10,29 @@ Platform::Platform(float &gameZoneX0, float &gameZoneY0, Gdiplus::Image *image, 
 
 void Platform::IncSizeCoefficient() {
     if (sizeCoefficient < 2.24) {
+        PrepareToRelocate();
         sizeCoefficient *= 1.5;
+        if (GetRealOffsetX()<0) {
+            float imageWidth = image->GetWidth();
+            offsetX = (imageWidth * sizeCoefficient - imageWidth) / 2;
+        }
+        if (GetRealOffsetX()+GetRealWidth()>=DEFAULT_GAME_ZONE_WIDTH) {
+            offsetX = DEFAULT_GAME_ZONE_WIDTH-GetRealWidth();
+        }
     }
 }
 
 void Platform::DecSizeCoefficient() {
     if (sizeCoefficient > 0.45) {
+        PrepareToRelocate();
         sizeCoefficient /= 1.5;
+        if (GetRealOffsetX()<0) {
+            float imageWidth = image->GetWidth();
+            offsetX = (imageWidth * sizeCoefficient - imageWidth) / 2;
+        }
+        if (GetRealOffsetX()+GetRealWidth()>=DEFAULT_GAME_ZONE_WIDTH) {
+            offsetX = DEFAULT_GAME_ZONE_WIDTH-GetRealWidth();
+        }
     }
 }
 
@@ -40,7 +56,7 @@ void Platform::Move(float centerX) {
     if (!IsWasFilled()) {
         SetRepaintRECT();
     }
-    float oldOffsetX = offsetX;
+
     float imageWidth = image->GetWidth();
     float realWidth = GetRealWidth();
     if (((centerX - realWidth / 2 * scale)) < gameZoneX0) {
@@ -70,6 +86,34 @@ void Platform::CalculateRECT() {
     rect.right = GetRealOffsetX() + GetRealWidth();
     rect.bottom = offsetY + image->GetHeight();
     rect.top = offsetY;
+}
+
+void Platform::MoveLeft() {
+    if (!IsWasFilled()) {
+        SetRepaintRECT();
+    }
+
+    offsetX-=DEFAULT_PLATFORM_MOVE;
+    if (GetRealOffsetX()<0) {
+        float imageWidth = image->GetWidth();
+        offsetX = (imageWidth * sizeCoefficient - imageWidth) / 2;
+    }
+
+    needRepaint = true;
+}
+
+void Platform::MoveRight() {
+    if (!IsWasFilled()) {
+        SetRepaintRECT();
+    }
+
+    offsetX+=DEFAULT_PLATFORM_MOVE;
+    if (GetRealOffsetX()+GetRealWidth()>=DEFAULT_GAME_ZONE_WIDTH) {
+        offsetX = DEFAULT_GAME_ZONE_WIDTH-GetRealWidth();
+    }
+
+
+    needRepaint = true;
 }
 
 

@@ -23,6 +23,8 @@ private:
     HBITMAP oldBmp, hBM;
     HBRUSH brush;
     RECT clientRect;
+    RECT windowRect;
+    RECT prevWindowRect;
 
     float clientWidth, clientHeight;
     float scale;
@@ -45,9 +47,10 @@ private:
     RECT scoreTextRect;
     RECT livesTextRect;
 
-    int level;
-    int score;
-    int lives;
+    int level, oldLevel;
+    int score, oldScore;
+    int lives, oldLives;
+
 
     Gdiplus::Graphics *graphics;
 
@@ -62,6 +65,17 @@ private:
     Gdiplus::Image *redBrickPic;
     Gdiplus::Image *yellowBrickPic;
 
+    Gdiplus::Image *fireBallPic;
+    Gdiplus::Image *bonusBallPic;
+    Gdiplus::Image *bonusCutPic;
+    Gdiplus::Image *bonusExpandPic;
+    Gdiplus::Image *bonusFireBallPic;
+    Gdiplus::Image *bonusEXP1Pic;
+    Gdiplus::Image *bonusEXP2Pic;
+    Gdiplus::Image *bonusEXP3Pic;
+    Gdiplus::Image *bonusEXP4Pic;
+    Gdiplus::Image *bonusEXP5Pic;
+
     std::vector <Ball*> balls;
     std::vector <Brick*> bricks;
     std::vector <Bonus*> bonuses;
@@ -74,28 +88,32 @@ private:
     bool isNeedGeneration = true;
     bool isWaitForStarted = false;
     bool isNeedRepaintBackground = true;
+    bool isNeedRepaintLevel = true;
+    bool isNeedRepaintScore = true;
+    bool isNeedRepaintLives = true;
 
-    bool resized = false;
+    bool isFireBall = false;
 
-    DWORD StartTick;
-    DWORD EndTick;
+    DWORD startTick;
+    DWORD endTick;
 
-    int numOfBlocks;
+    int numOfBricks;
     int numOfBalls;
     FloatRECT leftSide;
     FloatRECT rightSide;
     FloatRECT upSide;
     FloatRECT downSide;
 
+
+
     int GenerateBricks(int numOfLevel);
     Brick* BrickFactory(int brickPosX, int brickPosY, int brickType);
+    Bonus* BonusFactory(float offsetX, float offsetY, BonusType bonusType, BrickType brickType);
     void CalculateBackground(float &backgroundX0, float &backgroundY0, float &backgroundWidth, float &backgroundHeight);
     void CalculateGameBox(float &gameBoxX0, float &gameBoxY0, float &gameBoxSide, float &scale);
     void CalculateGameZone();
     void CompletionPaintingBEP();
     void InitPaintBEP();
-    void CompletionPaintingGRP();
-    void InitPaintGRP();
     void CalculateFontProperties();
     void PrepareFontDrawing(HFONT &hfont);
     void CompletionFontDrawing(HFONT &hfont);
@@ -110,6 +128,10 @@ private:
     static void CorrectOffsetAndAngle(Ball *ball, FloatRECT barrierRect, int numOfIntersection);
     void DeleteWhatsNeeded();
     static void CorrectOffsetAndAngleByPlatform(Ball *ball, FloatRECT platform, int numOfIntersection);
+    static BonusType RandomizeBonus();
+    void BeginAgainThisLevel();
+    void UseBonus(Bonus *bonus);
+    void GameProcessing();
 public:
 
     void SetResized();
@@ -122,6 +144,8 @@ public:
     void SwitchPause();
     bool IsPaused();
     void TryToStartGame();
+    void MovePlatformLeft();
+    void MovePlatformRight();
 };
 
 

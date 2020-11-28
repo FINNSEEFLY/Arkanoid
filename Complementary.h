@@ -8,7 +8,7 @@
 #define RESOURCE_ROOT "res\\"
 #define LVL_DIR "lvl\\"
 #define LVL_EXTENSION ".txt"
-#define BACKGROUND_PIC_PATH L"res\\interface\\SpaceBlurred1080p.jpg"
+#define BACKGROUND_PIC_PATH L"res\\interface\\SpaceBlurred720p.jpg"
 #define PAUSE_PIC_PATH L"res\\interface\\Pause.png"
 #define GAME_BOX_PIC_PATH L"res\\interface\\GamingZone.png"
 #define PLATFORM_PIC_PATH L"res\\platform\\platform.png"
@@ -18,6 +18,17 @@
 #define PURPLE_BRICK_PIC_PATH L"res\\bricks\\PurpleBrick.png"
 #define RED_BRICK_PIC_PATH L"res\\bricks\\RedBrick.png"
 #define YELLOW_BRICK_PIC_PATH L"res\\bricks\\YellowBrick.png"
+#define FIREBALL_PIC_PATH L"res\\ball\\FireBall32x32.png"
+
+#define BONUS_BALL_PATH L"res\\bonus\\BonusBall.png"
+#define BONUS_CUT_PATH L"res\\bonus\\BonusCut.png"
+#define BONUS_EXPAND_PATH L"res\\bonus\\BonusExpand.png"
+#define BONUS_FIREBALL_PATH L"res\\bonus\\BonusFireBall.png"
+#define BONUS_EXP1_PATH L"res\\bonus\\BonusEXP1.png"
+#define BONUS_EXP2_PATH L"res\\bonus\\BonusEXP2.png"
+#define BONUS_EXP3_PATH L"res\\bonus\\BonusEXP3.png"
+#define BONUS_EXP4_PATH L"res\\bonus\\BonusEXP4.png"
+#define BONUS_EXP5_PATH L"res\\bonus\\BonusEXP5.png"
 
 #define TEXT_TOP 64
 #define TEXT_BOTTOM 128
@@ -82,6 +93,9 @@
 #define UP_SIDE_RIGHT DEFAULT_GAME_ZONE_WIDTH
 #define UP_SIDE_TOP FLOAT_MIN_VALUE
 #define UP_SIDE_BOTTOM 0
+
+#define DEFAULT_PLATFORM_MOVE 70
+
 
 
 

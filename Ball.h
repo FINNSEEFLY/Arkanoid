@@ -15,7 +15,6 @@ private:
     float prevOffsetX;
     float prevOffsetY;
     bool destroyed = false;
-    void PrepareToRelocate();
 public:
     void CalculateNextPoint(int t);
 
@@ -26,10 +25,10 @@ public:
     void SetOffsetX2(float x);
     void SetOffsetY2(float y);
     float GetAngle();
+    float GetSpeed();
     bool IsDestroyed();
     void SetDestroyed();
     void SetAngle(float angle);
-    int GetNumOfIntersection(FloatRECT TargetRect);
 };
 
 

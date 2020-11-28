@@ -22,6 +22,8 @@ public:
     void PaintOnGraphics(Gdiplus::Graphics &graphics) override;
     void SetRepaintRECT() override;
     void CalculateRECT() override;
+    void MoveLeft();
+    void MoveRight();
 };
 
 

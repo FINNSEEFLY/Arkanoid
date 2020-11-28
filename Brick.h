@@ -32,25 +32,32 @@
 #define BRICK_WIDTH 120
 #define BRICK_HEIGHT 50
 
+enum BrickType {
+    BRICK_TYPE_PURPLE,
+    BRICK_TYPE_GREEN,
+    BRICK_TYPE_BLUE,
+    BRICK_TYPE_RED,
+    BRICK_TYPE_YELLOW,
+};
+
 class Brick : public DrawableShape {
 private:
     int hitsBeforeDestruction;
     int price;
+    BrickType brickType;
     bool isDestroyed = false;
 public:
     Brick(float &gameZoneX0, float &gameZoneY0, Gdiplus::Image *image, float &scale, float offsetX, float offsetY,
-                 int hitsBeforeDestruction, int experience) : DrawableShape(gameZoneX0, gameZoneY0, image, scale, offsetX,
-                                                                            offsetY),
-                                                              hitsBeforeDestruction(hitsBeforeDestruction),
-                                                              price(experience) {
-        CalculateRECT();
-    };
+          int hitsBeforeDestruction, int price, BrickType brickType);
+
     bool IsDestroyed();
-    bool HitTheBrick();
+
+    bool HitTheBrick(bool isFireball);
+
     int GetPrice();
+
+    BrickType GetBrickType();
 };
-
-
 
 
 #endif //ARKANOID_BRICK_H

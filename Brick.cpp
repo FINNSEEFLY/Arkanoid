@@ -23,9 +23,9 @@ bool Brick::IsDestroyed() {
 9 - со всех сторон*/
 
 
-bool Brick::HitTheBrick() {
+bool Brick::HitTheBrick(bool isFireball) {
     hitsBeforeDestruction--;
-    if (hitsBeforeDestruction == 0) {
+    if (hitsBeforeDestruction == 0 || isFireball) {
         isDestroyed = true;
         wasFilled = true;
         needRepaint = false;
@@ -37,3 +37,16 @@ bool Brick::HitTheBrick() {
 int Brick::GetPrice() {
     return price;
 }
+
+BrickType Brick::GetBrickType() {
+    return brickType;
+}
+
+Brick::Brick(float &gameZoneX0, float &gameZoneY0, Gdiplus::Image *image, float &scale, float offsetX, float offsetY,
+             int hitsBeforeDestruction, int price, BrickType brickType) : DrawableShape(gameZoneX0, gameZoneY0, image,
+                                                                                        scale, offsetX, offsetY),
+                                                                          hitsBeforeDestruction(hitsBeforeDestruction),
+                                                                          price(price), brickType(brickType) {
+    CalculateRECT();
+}
+

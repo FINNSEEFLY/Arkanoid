@@ -20,23 +20,38 @@ protected:
     bool needRepaint = true;
     bool wasFilled = false;
     FloatRECT rect;
-    virtual void SetRepaintRECT();
+
+
     void EndPaint();
+
+
 public:
+    virtual void SetRepaintRECT();
+
+    void PrepareToRelocate();
+
     int GetWidth();
+
     virtual void CalculateRECT();
+
     int GetHeight();
+
     FloatRECT GetRECT();
+
     void SetNeedRepaint();
+
     bool IsNeedRepaint();
+
     bool IsWasFilled();
+
     RECT repaintRect;
 
-virtual void PaintOnGraphics(Gdiplus::Graphics &graphics);
+    virtual void PaintOnGraphics(Gdiplus::Graphics &graphics);
 
-DrawableShape(float &gameZoneX0, float &gameZoneY0, Gdiplus::Image *image, float &scale, float offsetX,
+    DrawableShape(float &gameZoneX0, float &gameZoneY0, Gdiplus::Image *image, float &scale, float offsetX,
                   float offsetY);
 
+    int GetNumOfIntersection(FloatRECT TargetRect);
 };
 
 

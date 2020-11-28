@@ -77,10 +77,16 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message,
         case WM_KEYDOWN:
             switch (wParam) {
                 case VK_LEFT:
-                    //TODO: нажатие влево
+                    if (!gameSession->IsPaused()) {
+                        gameSession->MovePlatformLeft();
+                        InvalidateRect(hWnd,NULL,false);
+                    }
                     break;
                 case VK_RIGHT:
-                    //TODO: нажатие вправо
+                    if (!gameSession->IsPaused()) {
+                        gameSession->MovePlatformRight();
+                        InvalidateRect(hWnd,NULL,false);
+                    }
                     break;
                 case VK_ESCAPE:
                     gameSession->SwitchPause();
