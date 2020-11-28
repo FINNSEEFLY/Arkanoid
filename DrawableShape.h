@@ -13,7 +13,7 @@ class DrawableShape {
 protected:
     float &gameZoneX0;
     float &gameZoneY0;
-    Gdiplus::Image *image;
+    Gdiplus::Image *&image;
     float &scale;
     float offsetX;
     float offsetY;
@@ -50,7 +50,7 @@ public:
 
     virtual void PaintOnGraphics(Gdiplus::Graphics &graphics);
 
-    DrawableShape(float &gameZoneX0, float &gameZoneY0, Gdiplus::Image *image, float &scale, float offsetX,
+    DrawableShape(float &gameZoneX0, float &gameZoneY0, Gdiplus::Image *&image, float &scale, float offsetX,
                   float offsetY);
 
     int GetNumOfIntersection(FloatRECT TargetRect);

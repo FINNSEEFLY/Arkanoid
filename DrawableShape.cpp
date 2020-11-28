@@ -27,9 +27,6 @@ void DrawableShape::EndPaint() {
     wasFilled = false;
 }
 
-DrawableShape::DrawableShape(float &gameZoneX0, float &gameZoneY0, Gdiplus::Image *image, float &scale, float offsetX,
-                             float offsetY) : gameZoneX0(gameZoneX0), gameZoneY0(gameZoneY0), image(image),
-                                              scale(scale), offsetX(offsetX), offsetY(offsetY) {}
 
 
 
@@ -135,5 +132,9 @@ void DrawableShape::SetOffsetY(float offset) {
     PrepareToRelocate();
     offsetY=offset;
 }
+
+DrawableShape::DrawableShape(float &gameZoneX0, float &gameZoneY0, Gdiplus::Image *&image, float &scale, float offsetX,
+                             float offsetY) : gameZoneX0(gameZoneX0), gameZoneY0(gameZoneY0), image(image),
+                                              scale(scale), offsetX(offsetX), offsetY(offsetY) {}
 
 

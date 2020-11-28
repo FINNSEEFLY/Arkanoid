@@ -18,8 +18,9 @@ private:
 public:
     void CalculateNextPoint(int t);
 
-    Ball(float &gameZoneX0, float &gameZoneY0, Gdiplus::Image *image, float &scale, float offsetX, float offsetY,
+    Ball(float &gameZoneX0, float &gameZoneY0, Gdiplus::Image *&image, float &scale, float offsetX, float offsetY,
          float speed, float angle);
+
     void SetOffsetX(float x);
     void SetOffsetY(float y);
     void SetOffsetX2(float x);

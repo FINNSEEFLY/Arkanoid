@@ -36,7 +36,7 @@ public:
     BonusType GetBonusType();
     int GetPrice();
 
-    Bonus(float &gameZoneX0, float &gameZoneY0, Gdiplus::Image *image, float &scale, float offsetX, float offsetY,
+    Bonus(float &gameZoneX0, float &gameZoneY0, Gdiplus::Image *&image, float &scale, float offsetX, float offsetY,
           BonusType bonusType, int price);
 };
 

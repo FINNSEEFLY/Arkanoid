@@ -42,11 +42,12 @@ BrickType Brick::GetBrickType() {
     return brickType;
 }
 
-Brick::Brick(float &gameZoneX0, float &gameZoneY0, Gdiplus::Image *image, float &scale, float offsetX, float offsetY,
+Brick::Brick(float &gameZoneX0, float &gameZoneY0, Gdiplus::Image *&image, float &scale, float offsetX, float offsetY,
              int hitsBeforeDestruction, int price, BrickType brickType) : DrawableShape(gameZoneX0, gameZoneY0, image,
                                                                                         scale, offsetX, offsetY),
                                                                           hitsBeforeDestruction(hitsBeforeDestruction),
                                                                           price(price), brickType(brickType) {
     CalculateRECT();
 }
+
 

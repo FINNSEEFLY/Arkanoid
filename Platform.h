@@ -18,7 +18,9 @@ public:
     float GetRealWidth();
     float GetRealOffsetX();
     float GetOffsetY();
-    Platform(float &gameZoneX0, float &gameZoneY0, Gdiplus::Image *image, float &scale, float offsetX, float offsetY);
+
+    Platform(float &gameZoneX0, float &gameZoneY0, Gdiplus::Image *&image, float &scale, float offsetX, float offsetY);
+
     void PaintOnGraphics(Gdiplus::Graphics &graphics) override;
     void SetRepaintRECT() override;
     void CalculateRECT() override;

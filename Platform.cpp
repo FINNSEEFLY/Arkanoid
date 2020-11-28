@@ -5,8 +5,6 @@
 #include "Platform.h"
 #include "Complementary.h"
 
-Platform::Platform(float &gameZoneX0, float &gameZoneY0, Gdiplus::Image *image, float &scale, float offsetX,
-                   float offsetY) : DrawableShape(gameZoneX0, gameZoneY0, image, scale, offsetX, offsetY) {}
 
 void Platform::IncSizeCoefficient() {
     if (sizeCoefficient < 2.24) {
@@ -120,6 +118,9 @@ void Platform::MoveRight() {
 
     needRepaint = true;
 }
+
+Platform::Platform(float &gameZoneX0, float &gameZoneY0, Gdiplus::Image *&image, float &scale, float offsetX,
+                   float offsetY) : DrawableShape(gameZoneX0, gameZoneY0, image, scale, offsetX, offsetY) {}
 
 
 

@@ -47,7 +47,7 @@ private:
     BrickType brickType;
     bool isDestroyed = false;
 public:
-    Brick(float &gameZoneX0, float &gameZoneY0, Gdiplus::Image *image, float &scale, float offsetX, float offsetY,
+    Brick(float &gameZoneX0, float &gameZoneY0, Gdiplus::Image *&image, float &scale, float offsetX, float offsetY,
           int hitsBeforeDestruction, int price, BrickType brickType);
 
     bool IsDestroyed();
