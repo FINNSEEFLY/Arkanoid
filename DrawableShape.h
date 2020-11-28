@@ -23,10 +23,12 @@ protected:
 
 
     void EndPaint();
-
+    virtual void SetRepaintRECT();
 
 public:
-    virtual void SetRepaintRECT();
+
+    void SetOffsetX(float offset);
+    void SetOffsetY(float offset);
 
     void PrepareToRelocate();
 

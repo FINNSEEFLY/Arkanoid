@@ -36,6 +36,11 @@ void Platform::DecSizeCoefficient() {
     }
 }
 
+void Platform::SetDefaultSizeCoefficient() {
+    PrepareToRelocate();
+    sizeCoefficient=1;
+}
+
 void Platform::PaintOnGraphics(Gdiplus::Graphics &graphics) {
     graphics.DrawImage(image, gameZoneX0 + GetRealOffsetX() * scale, gameZoneY0 + offsetY * scale,
                        GetRealWidth() * scale,

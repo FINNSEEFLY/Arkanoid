@@ -22,13 +22,6 @@ void Bonus::CalculateNextPoint(int t) {
     CalculateRECT();
 }
 
-void Bonus::PrepareToRelocate() {
-    if (!IsWasFilled()) {
-        SetRepaintRECT();
-    }
-    SetNeedRepaint();
-}
-
 BonusType Bonus::GetBonusType() {
     return bonusType;
 }

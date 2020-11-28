@@ -59,6 +59,7 @@ private:
     Gdiplus::Image *gameZonePic;
     Gdiplus::Image *platformPic;
     Gdiplus::Image *ballPic;
+    Gdiplus::Image *defaultBallPic;
     Gdiplus::Image *blueBrickPic;
     Gdiplus::Image *greenBrickPic;
     Gdiplus::Image *purpleBrickPic;
@@ -127,11 +128,19 @@ private:
     void PaintWhatsNeed();
     static void CorrectOffsetAndAngle(Ball *ball, FloatRECT barrierRect, int numOfIntersection);
     void DeleteWhatsNeeded();
-    static void CorrectOffsetAndAngleByPlatform(Ball *ball, FloatRECT platform, int numOfIntersection);
+    void CorrectOffsetAndAngleByPlatform(Ball *ball, FloatRECT platform, int numOfIntersection);
     static BonusType RandomizeBonus();
     void BeginAgainThisLevel();
     void UseBonus(Bonus *bonus);
-    void GameProcessing();
+    void ProcessingGameCondition();
+    void ResetPlatform();
+    void SetBonusesNeedDelete();
+    void SetBallsNeedDelete();
+    void ProcessingWinCondition();
+    void ProcessingRestartCondition();
+    void ProcessingGenerationCondition();
+    void SetUsingFireBall(bool fireball);
+
 public:
 
     void SetResized();

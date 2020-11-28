@@ -24,6 +24,7 @@ public:
     void CalculateRECT() override;
     void MoveLeft();
     void MoveRight();
+    void SetDefaultSizeCoefficient();
 };
 
 

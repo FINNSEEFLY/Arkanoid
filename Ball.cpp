@@ -17,7 +17,9 @@ void Ball::CalculateNextPoint(int t) {
 
 Ball::Ball(float &gameZoneX0, float &gameZoneY0, Gdiplus::Image *image, float &scale, float offsetX, float offsetY,
            float speed, float angle) : DrawableShape(gameZoneX0, gameZoneY0, image, scale, offsetX, offsetY),
-                                       speed(speed), angle(angle) {}
+                                       speed(speed), angle(angle) {
+    CalculateRECT();
+}
 
 void Ball::SetOffsetX(float x) {
     PrepareToRelocate();

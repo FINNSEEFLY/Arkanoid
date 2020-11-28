@@ -127,4 +127,13 @@ void DrawableShape::PrepareToRelocate() {
     SetNeedRepaint();
 }
 
+void DrawableShape::SetOffsetX(float offset) {
+    PrepareToRelocate();
+    offsetX=offset;
+}
+void DrawableShape::SetOffsetY(float offset) {
+    PrepareToRelocate();
+    offsetY=offset;
+}
+
 

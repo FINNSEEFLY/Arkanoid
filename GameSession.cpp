@@ -14,7 +14,7 @@ GameSession::GameSession(const HWND hwnd) : hWnd(hwnd) {
     pausePic = new Gdiplus::Image(PAUSE_PIC_PATH);
     gameZonePic = new Gdiplus::Image(GAME_BOX_PIC_PATH);
     platformPic = new Gdiplus::Image(PLATFORM_PIC_PATH);
-    ballPic = new Gdiplus::Image(BALL_PIC_PATH);
+    defaultBallPic = new Gdiplus::Image(BALL_PIC_PATH);
     blueBrickPic = new Gdiplus::Image(BLUE_BRICK_PIC_PATH);
     greenBrickPic = new Gdiplus::Image(GREEN_BRICK_PIC_PATH);
     purpleBrickPic = new Gdiplus::Image(PURPLE_BRICK_PIC_PATH);
@@ -32,9 +32,12 @@ GameSession::GameSession(const HWND hwnd) : hWnd(hwnd) {
     bonusEXP4Pic = new Gdiplus::Image(BONUS_EXP4_PATH);
     bonusEXP5Pic = new Gdiplus::Image(BONUS_EXP5_PATH);
 
+    ballPic = defaultBallPic;
+
     level = 1;
     lives = 3;
     score = 0;
+    numOfBalls=1;
 
     lf.lfCharSet = DEFAULT_CHARSET;
     lf.lfPitchAndFamily = DEFAULT_PITCH;
@@ -96,7 +99,7 @@ GameSession::~GameSession() {
     delete pausePic;
     delete gameZonePic;
     delete platformPic;
-    delete ballPic;
+    delete defaultBallPic;
     delete blueBrickPic;
     delete greenBrickPic;
     delete purpleBrickPic;
@@ -161,6 +164,7 @@ void GameSession::Repaint() {
         SetAllNeedRepaint(false);
     }
     RepaintController();
+    RepaintController();
 
     if (oldLevel != level || isNeedRepaintLevel) {
         FillRect(memDC, &levelTextRect, brush);
@@ -196,40 +200,96 @@ void GameSession::Repaint() {
 void GameSession::RepaintController() {
     if (lives == 0) {
         // проигрыш все дела
-        isGameStarted = false;
-        isGamePaused = false;
-        isNeedGeneration = true;
-        isWaitForStarted = false;
-        isNeedRepaintBackground = true;
-        score = 0;
-        lives = 3;
-        level = 1;
-        isFireBall = false;
-        delete platform;
-        platform = new Platform(gameZoneX0, gameZoneY0, platformPic, scale, DEFAULT_PLATFORM_OFFSET_X,
-                                DEFAULT_PLATFORM_OFFSET_Y);
+        ProcessingRestartCondition();
     }
     if (isNeedGeneration) {
-        DeleteBalls();
-        DeleteBricks();
-        DeleteBonuses();
-        numOfBricks = GenerateBricks(level);
-        balls.push_back(new Ball(gameZoneX0, gameZoneY0, ballPic, scale,
-                                 platform->GetRealWidth() / 2 + platform->GetRealOffsetX() - ballPic->GetWidth() / 2,
-                                 platform->GetOffsetY() - 1 - ballPic->GetHeight(), DEFAULT_SPEED, DEFAULT_ANGLE));
-        numOfBalls = 1;
-        isNeedGeneration = false;
-        isWaitForStarted = true;
-        SetAllNeedRepaint(true);
+        ProcessingGenerationCondition();
     }
     if (isGameStarted && !isGamePaused) {
-        GameProcessing();
+        ProcessingGameCondition();
     }
     RepaintWhatsNeeded();
     DeleteWhatsNeeded();
 }
 
+
+void GameSession::ProcessingGameCondition() {
+    endTick = GetTickCount();
+    if (startTick == endTick) return;
+    for (; startTick <= endTick; startTick++) {
+        for (auto ball: balls) {
+            if (ball->IsDestroyed()) continue;
+            ball->CalculateNextPoint(DEFAULT_TIME);
+            CorrectOffsetAndAngleByPlatform(ball, platform->GetRECT(),
+                                            ball->GetNumOfIntersection(platform->GetRECT()));
+            CorrectOffsetAndAngle(ball, leftSide, ball->GetNumOfIntersection(leftSide));
+            CorrectOffsetAndAngle(ball, rightSide, ball->GetNumOfIntersection(rightSide));
+            CorrectOffsetAndAngle(ball, upSide, ball->GetNumOfIntersection(upSide));
+            if (ball->GetNumOfIntersection(downSide) != 0) {
+                numOfBalls--;
+                ball->SetDestroyed();
+                if (numOfBalls != 0) continue;
+                else {
+                    lives--;
+                    SetUsingFireBall(false);
+                    ResetPlatform();
+                    SetBonusesNeedDelete();
+                    SetBallsNeedDelete();
+                    if (lives == 0) break;
+                    else {
+                        BeginAgainThisLevel();
+                    }
+                }
+            }
+            for (auto brick: bricks) {
+                if (brick->IsDestroyed()) continue;
+                int numOfIntersection = ball->GetNumOfIntersection(brick->GetRECT());
+                if (numOfIntersection == 0) continue;
+                numOfBricks -= brick->HitTheBrick(isFireBall);
+                FloatRECT brickRect = brick->GetRECT();
+                if (brick->IsDestroyed()) {
+                    score += brick->GetPrice();
+
+                    Bonus *bonus = BonusFactory((brickRect.right - brickRect.left) / 2 + brickRect.left,
+                                                (brickRect.bottom - brickRect.top) / 2 + brickRect.top,
+                                                RandomizeBonus(), brick->GetBrickType());
+                    if (bonus!=nullptr) {
+                        bonuses.push_back(bonus);
+                    }
+                }
+                if (!isFireBall) {
+                    CorrectOffsetAndAngle(ball, brickRect, numOfIntersection);
+                }
+                if (numOfBricks == 0) {
+                    ProcessingWinCondition();
+                }
+            }
+        }
+        for (auto bonus:bonuses) {
+            if (bonus->IsDestroyed()) continue;
+            bonus->CalculateNextPoint(DEFAULT_TIME);
+            if (bonus->GetNumOfIntersection(platform->GetRECT())) {
+                UseBonus(bonus);
+                bonus->PrepareToRelocate();
+                continue;
+            }
+            if (bonus->GetNumOfIntersection(downSide) == INTERSECTION_UP) {
+                bonus->SetDestroyed();
+                bonus->PrepareToRelocate();
+                continue;
+            }
+            for(auto brick:bricks) {
+                int numOfIntersection = bonus->GetNumOfIntersection(brick->GetRECT());
+                if (numOfIntersection==0) continue;
+                brick->PrepareToRelocate();
+            }
+        }
+    }
+
+}
+
 void GameSession::BeginAgainThisLevel() {
+    SetUsingFireBall(false);
     balls.push_back(new Ball(gameZoneX0, gameZoneY0, ballPic, scale,
                              platform->GetRealWidth() / 2 + platform->GetRealOffsetX() -
                              ballPic->GetWidth() / 2,
@@ -240,7 +300,9 @@ void GameSession::BeginAgainThisLevel() {
     isNeedGeneration = false;
     isWaitForStarted = true;
     numOfBalls = 1;
-    isFireBall = false;
+    ResetPlatform();
+
+    SetBonusesNeedDelete();
     RepaintWhatsNeeded();
     DeleteWhatsNeeded();
     return;
@@ -622,22 +684,30 @@ void GameSession::CorrectOffsetAndAngle(Ball *ball, FloatRECT barrierRect, int n
 }
 
 void GameSession::DeleteWhatsNeeded() {
-    for (auto ball: balls) {
-        if (ball->IsDestroyed()) {
+    for (int i = 0; i<balls.size(); i++) {
+    /*for (auto ball: balls) {*/
+        if (balls[i]->IsDestroyed()) {
+            Ball* ball = balls[i];
             auto newEnd = std::remove(balls.begin(), balls.end(), ball);
             balls.erase(newEnd, balls.end());
             delete ball;
+/*            i--;*/
         }
     }
-    for (auto brick: bricks) {
-        if (brick->IsDestroyed()) {
+    /*for (auto brick: bricks) {*/
+        for (int i = 0; i<bricks.size(); i++) {
+        if (bricks[i]->IsDestroyed()) {
+            Brick* brick = bricks[i];
             auto newEnd = std::remove(bricks.begin(), bricks.end(), brick);
             bricks.erase(newEnd, bricks.end());
             delete brick;
+            i--;
         }
     }
-    for (auto bonus: bonuses) {
-        if (bonus->IsDestroyed()) {
+    /*for (auto bonus: bonuses) {*/
+    for (int i = 0; i<bonuses.size(); i++) {
+        if (bonuses[i]->IsDestroyed()) {
+            Bonus* bonus = bonuses[i];
             auto newEnd = std::remove(bonuses.begin(), bonuses.end(), bonus);
             bonuses.erase(newEnd, bonuses.end());
             delete bonus;
@@ -658,26 +728,31 @@ void GameSession::CorrectOffsetAndAngleByPlatform(Ball *ball, FloatRECT platform
             float platformCenter = (platform.right - platform.left) / 2;
             float distanceBtwBallAndPlatform = abs(ballCenter - platformCenter);
             float dotCoefficient = distanceBtwBallAndPlatform / platformCenter;
-            ball->SetAngle(360 - angle * dotCoefficient * (float) (500 + rand() % 1000) / 1000);
-/*            if (angle > 0 && angle < 90) {
-                ball->SetAngle(360 - angle);
+            if (angle > 0 && angle < 90) {
+                /*ball->SetAngle(360 - angle);*/
+                ball->SetAngle(360 - angle * dotCoefficient * (float) (500 + rand() % 1000) / 1000);
+                if (ball->GetAngle()>330) ball->SetAngle(330);
             } else if (angle > 90 && angle < 180) {
-                ball->SetAngle(360 - angle);
-            }*/
+                /*ball->SetAngle(360 - angle);*/
+                ball->SetAngle(360 - angle * dotCoefficient * (float) (500 + rand() % 1000) / 1000);
+                if (ball->GetAngle()<210) ball->SetAngle(210);
+            }
         }
+        default:
+            this->platform->PrepareToRelocate();
     }
 }
 
 BonusType GameSession::RandomizeBonus() {
     srand(GetTickCount());
-    int random = rand() % 3;
+    int random = rand() % 4;
     if (random == 0) return BONUS_NONE;
-    random = 1 + rand() % 16;
+    random =  rand() % 16 + 1;
     if (random >= 1 && random <= 4) return BONUS_EXPAND;
     if (random >= 5 && random <= 8) return BONUS_CUT;
     if (random >= 9 && random <= 12) return BONUS_MORE_BALLS;
     if (random >= 13 && random <= 15) return BONUS_EXPERIENCE;
-    if (random == 16) return BONUS_MORE_BALLS;
+    if (random >= 16) return BONUS_FIREBALL;
     return BONUS_NONE;
 }
 
@@ -732,98 +807,104 @@ void GameSession::UseBonus(Bonus *bonus) {
         }
             break;
         case BONUS_FIREBALL: {
-            isFireBall = true;
+            SetUsingFireBall(true);
         }
             break;
         case BONUS_CUT: {
             platform->DecSizeCoefficient();
-        } break;
+        }
+            break;
         case BONUS_MORE_BALLS: {
-            std::vector<Ball *> tmpBalls;
-            for (auto ball:balls) {
-                FloatRECT ballRect = ball->GetRECT();
-                Ball *newBall = new Ball(gameZoneX0, gameZoneY0, ballPic, scale, ballRect.left, ballRect.top,
-                                         ball->GetSpeed(), fmod(ball->GetAngle() + 90, 360));
-                tmpBalls.push_back(newBall);
+            int localNumOfBalls = balls.size();
+            for (int i = 0; i<localNumOfBalls; i++) {
+                FloatRECT ballRect = balls[i]->GetRECT();
+                balls.push_back(new Ball(gameZoneX0, gameZoneY0, ballPic, scale, ballRect.left, ballRect.top,
+                                            balls[i]->GetSpeed(), fmod(balls[i]->GetAngle() + 180, 360)));
+                numOfBalls++;
             }
-            tmpBalls.clear();
-        } break;
+        }
+            break;
     }
     bonus->SetDestroyed();
 }
 
-void GameSession::GameProcessing() {
-    endTick = GetTickCount();
-    if (startTick == endTick) return;
-    for (; startTick <= endTick; startTick++) {
-        for (auto ball: balls) {
-            ball->CalculateNextPoint(DEFAULT_TIME);
-            CorrectOffsetAndAngleByPlatform(ball, platform->GetRECT(),
-                                            ball->GetNumOfIntersection(platform->GetRECT()));
-            CorrectOffsetAndAngle(ball, leftSide, ball->GetNumOfIntersection(leftSide));
-            CorrectOffsetAndAngle(ball, rightSide, ball->GetNumOfIntersection(rightSide));
-            CorrectOffsetAndAngle(ball, upSide, ball->GetNumOfIntersection(upSide));
-            if (ball->GetNumOfIntersection(downSide) != 0) {
-                numOfBalls--;
-                ball->SetDestroyed();
-                if (numOfBalls == 0) {
-                    lives--;
-                    if (lives == 0) break;
-                    else {
-                        BeginAgainThisLevel();
-                    }
-                }
-            }
-            for (auto brick: bricks) {
-                if (brick->IsDestroyed()) continue;
-                int numOfIntersection = ball->GetNumOfIntersection(brick->GetRECT());
-                if (numOfIntersection == 0) continue;
-                numOfBricks -= brick->HitTheBrick(isFireBall);
-                FloatRECT brickRect = brick->GetRECT();
-                if (brick->IsDestroyed()) {
-                    score += brick->GetPrice();
 
-                    Bonus *bonus = BonusFactory((brickRect.right - brickRect.left) / 2 + brickRect.left,
-                                                (brickRect.bottom - brickRect.top) / 2 + brickRect.top,
-                                                RandomizeBonus(), brick->GetBrickType());
-                    if (bonus) {
-                        bonuses.push_back(bonus);
-                    }
-                }
-                if (!isFireBall) {
-                    CorrectOffsetAndAngle(ball, brickRect, numOfIntersection);
-                    if (numOfBricks == 0) {
-                        isGameStarted = false;
-                        isGamePaused = false;
-                        isNeedGeneration = true;
-                        isWaitForStarted = false;
-                        numOfBalls = 1;
-                        level += 1;
-                        RepaintWhatsNeeded();
-                        DeleteWhatsNeeded();
-                    }
-                }
-            }
+
+void GameSession::ResetPlatform() {
+    platform->SetOffsetX(DEFAULT_PLATFORM_OFFSET_X);
+    platform->SetOffsetY(DEFAULT_PLATFORM_OFFSET_Y);
+    platform->SetDefaultSizeCoefficient();
+}
+
+void GameSession::SetBonusesNeedDelete() {
+     for (auto bonus: bonuses) {
+            bonus->PrepareToRelocate();
+            bonus->SetDestroyed();
         }
-        for (auto bonus:bonuses) {
-            if (bonus->IsDestroyed()) continue;
-            bonus->CalculateNextPoint(DEFAULT_TIME);
-            if (bonus->GetNumOfIntersection(platform->GetRECT())) {
-                UseBonus(bonus); continue;
-            }
-            if (bonus->GetNumOfIntersection(downSide) == INTERSECTION_DOWN) {
-                bonus->SetDestroyed();
-                continue;
-            }
-            for(auto brick:bricks) {
-                int numOfIntersection = bonus->GetNumOfIntersection(brick->GetRECT());
-                if (numOfIntersection==0) continue;
-                brick->PrepareToRelocate();
-            }
-        }
+}
+
+void GameSession::SetBallsNeedDelete() {
+    for (auto ball: balls) {
+        ball->PrepareToRelocate();
+        ball->SetDestroyed();
     }
+}
+
+void GameSession::ProcessingWinCondition() {
+    isGameStarted = false;
+    isGamePaused = false;
+    isNeedGeneration = true;
+    isWaitForStarted = false;
+    SetUsingFireBall(false);
+    numOfBalls = 1;
+    level += 1;
+    ResetPlatform();
+    SetBallsNeedDelete();
+    SetBonusesNeedDelete();
+    RepaintWhatsNeeded();
+    DeleteWhatsNeeded();
+    InvalidateRect(hWnd,NULL,false);
 
 }
+
+void GameSession::ProcessingRestartCondition() {
+    isGameStarted = false;
+    isGamePaused = false;
+    isNeedGeneration = true;
+    isWaitForStarted = false;
+    isNeedRepaintBackground = true;
+    score = 0;
+    lives = 3;
+    level = 1;
+    numOfBalls=1;
+
+}
+
+void GameSession::ProcessingGenerationCondition() {
+    DeleteBalls();
+    DeleteBricks();
+    DeleteBonuses();
+    numOfBricks = GenerateBricks(level);
+    balls.push_back(new Ball(gameZoneX0, gameZoneY0, ballPic, scale,
+                             platform->GetRealWidth() / 2 + platform->GetRealOffsetX() - ballPic->GetWidth() / 2,
+                             platform->GetOffsetY() - 1 - ballPic->GetHeight(), DEFAULT_SPEED, DEFAULT_ANGLE));
+    numOfBalls = 1;
+    isNeedGeneration = false;
+    isWaitForStarted = true;
+    SetUsingFireBall(false);
+    ResetPlatform();
+    SetAllNeedRepaint(true);
+}
+
+void GameSession::SetUsingFireBall(bool fireball) {
+    if (fireball) {
+        ballPic = fireBallPic;
+    } else {
+        ballPic = defaultBallPic;
+    }
+    isFireBall = fireball;
+}
+
 
 
 
