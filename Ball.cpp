@@ -1,7 +1,3 @@
-//
-// Created by FINNSEEFLY on 21.11.2020.
-//
-
 #include "Ball.h"
 
 void Ball::CalculateNextPoint(int t) {
@@ -15,19 +11,17 @@ void Ball::CalculateNextPoint(int t) {
     CalculateRECT();
 }
 
-
-
 void Ball::SetOffsetX(float x) {
     PrepareToRelocate();
     offsetX = x;
 }
 
-float Ball::GetAngle() {
+float Ball::GetAngle() const {
     return angle;
 }
 
-void Ball::SetAngle(float angle) {
-    this->angle = angle;
+void Ball::SetAngle(float newAngle) {
+    this->angle = newAngle;
 }
 
 void Ball::SetOffsetY(float y) {
@@ -47,7 +41,7 @@ void Ball::SetOffsetY2(float y) {
 
 
 
-bool Ball::IsDestroyed() {
+bool Ball::IsDestroyed() const {
     return destroyed;
 }
 
@@ -55,7 +49,7 @@ void Ball::SetDestroyed() {
     destroyed = true;
 }
 
-float Ball::GetSpeed() {
+float Ball::GetSpeed() const {
     return speed;
 }
 

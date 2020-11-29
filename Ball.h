@@ -1,7 +1,3 @@
-//
-// Created by FINNSEEFLY on 21.11.2020.
-//
-
 #ifndef ARKANOID_BALL_H
 #define ARKANOID_BALL_H
 
@@ -22,14 +18,22 @@ public:
          float speed, float angle);
 
     void SetOffsetX(float x);
+
     void SetOffsetY(float y);
+
     void SetOffsetX2(float x);
+
     void SetOffsetY2(float y);
-    float GetAngle();
-    float GetSpeed();
-    bool IsDestroyed();
+
+    [[nodiscard]] float GetAngle() const;
+
+    [[nodiscard]] float GetSpeed() const;
+
+    [[nodiscard]] bool IsDestroyed() const;
+
     void SetDestroyed();
-    void SetAngle(float angle);
+
+    void SetAngle(float newAngle);
 };
 
 

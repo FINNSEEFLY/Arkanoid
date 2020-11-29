@@ -1,17 +1,9 @@
-//
-// Created by FINNSEEFLY on 24.11.2020.
-//
-
 #ifndef ARKANOID_BONUS_H
 #define ARKANOID_BONUS_H
 
 
 #include "DrawableShape.h"
 
-/*Вероятности выпадения:
- * В принципе бонус - 1/3
- * Конкретный бонус(дополнительно к предыдущему)
- * Expand - */
 enum BonusType {
     BONUS_NONE,
     BONUS_EXPAND,
@@ -31,9 +23,13 @@ private:
     bool destroyed = false;
 public:
     bool IsDestroyed();
+
     void SetDestroyed();
+
     void CalculateNextPoint(int t);
+
     BonusType GetBonusType();
+
     int GetPrice();
 
     Bonus(float &gameZoneX0, float &gameZoneY0, Gdiplus::Image *&image, float &scale, float offsetX, float offsetY,

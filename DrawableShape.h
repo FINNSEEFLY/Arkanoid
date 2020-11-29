@@ -1,7 +1,3 @@
-//
-// Created by FINNSEEFLY on 19.11.2020.
-//
-
 #ifndef ARKANOID_DRAWABLESHAPE_H
 #define ARKANOID_DRAWABLESHAPE_H
 
@@ -23,11 +19,13 @@ protected:
 
 
     void EndPaint();
+
     virtual void SetRepaintRECT();
 
 public:
 
     void SetOffsetX(float offset);
+
     void SetOffsetY(float offset);
 
     void PrepareToRelocate();
@@ -42,9 +40,9 @@ public:
 
     void SetNeedRepaint();
 
-    bool IsNeedRepaint();
+    [[nodiscard]] bool IsNeedRepaint() const;
 
-    bool IsWasFilled();
+    [[nodiscard]] bool IsWasFilled() const;
 
     RECT repaintRect;
 

@@ -1,7 +1,3 @@
-//
-// Created by FINNSEEFLY on 22.11.2020.
-//
-
 #ifndef ARKANOID_GAMESESSION_H
 #define ARKANOID_GAMESESSION_H
 
@@ -24,8 +20,6 @@ private:
     HBITMAP oldBmp, hBM;
     HBRUSH brush;
     RECT clientRect;
-    RECT windowRect;
-    RECT prevWindowRect;
 
     float clientWidth, clientHeight;
     float scale;
@@ -49,7 +43,7 @@ private:
     RECT livesTextRect;
 
     int level, oldLevel;
-    int score, oldScore;
+    long score, oldScore, winScore;
     int lives, oldLives;
 
 
@@ -79,13 +73,13 @@ private:
     Gdiplus::Image *bonusEXP4Pic;
     Gdiplus::Image *bonusEXP5Pic;
 
-    std::vector <Ball*> balls;
-    std::vector <Brick*> bricks;
-    std::vector <Bonus*> bonuses;
-    std::vector<TextBox*> places;
-    std::vector<TextBox*> names;
-    std::vector<TextBox*> scores;
-    Platform* platform;
+    std::vector<Ball *> balls;
+    std::vector<Brick *> bricks;
+    std::vector<Bonus *> bonuses;
+    std::vector<TextBox *> places;
+    std::vector<TextBox *> names;
+    std::vector<TextBox *> scores;
+    Platform *platform;
 
     HFONT hFont;
 
@@ -112,63 +106,117 @@ private:
     FloatRECT downSide;
 
 
-
     int GenerateBricks(int numOfLevel);
-    Brick* BrickFactory(int brickPosX, int brickPosY, int brickType);
-    Bonus* BonusFactory(float offsetX, float offsetY, BonusType bonusType, BrickType brickType);
-    TextBox* TextBoxFactory(float offsetX, float offsetY, float width, float height, std::string value, COLORREF color);
+
+    Brick *BrickFactory(int brickPosX, int brickPosY, int brickType);
+
+    Bonus *BonusFactory(float offsetX, float offsetY, BonusType bonusType, BrickType brickType);
+
+    TextBox *TextBoxFactory(float offsetX, float offsetY, float width, float height, std::string value, COLORREF color);
+
     void LoadLeaderBoard();
+
     void SaveLeaderBoard();
+
     void CalculateBackground(float &backgroundX0, float &backgroundY0, float &backgroundWidth, float &backgroundHeight);
+
     void CalculateGameBox(float &gameBoxX0, float &gameBoxY0, float &gameBoxSide, float &scale);
+
     void CalculateGameZone();
+
     void CompletionPaintingBEP();
+
     void InitPaintBEP();
+
     void CalculateFontProperties();
+
     void PrepareFontDrawing(HFONT &hfont);
+
     void CompletionFontDrawing(HFONT &hfont);
+
     void RepaintController();
+
     void DeleteBalls();
+
     void DeleteBricks();
+
     void DeleteBonuses();
+
     void RepaintWhatsNeeded();
+
     void FillWhatsNeed();
+
     void PaintWhatsNeed();
+
     static void CorrectOffsetAndAngle(Ball *ball, FloatRECT barrierRect, int numOfIntersection);
+
     void DeleteWhatsNeeded();
+
     void CorrectOffsetAndAngleByPlatform(Ball *ball, FloatRECT platform, int numOfIntersection);
+
     static BonusType RandomizeBonus();
+
     void BeginAgainThisLevel();
+
     void UseBonus(Bonus *bonus);
+
     void ProcessingGameCondition();
+
     void ResetPlatform();
+
     void SetBonusesNeedDelete();
+
     void SetBallsNeedDelete();
+
     void ProcessingWinCondition();
+
     void ProcessingRestartCondition();
+
     void ProcessingGenerationCondition();
+
     void SetUsingFireBall(bool fireball);
-    void ReloadLeaderBoardData();
+
     void DeleteLeaderBoardData();
+
+    void SwapPlaces(int firstNum, int secondNum);
+
+    void DefaultInitScoreBoard(int startIndex, COLORREF color);
 
 public:
 
     void SetResized();
-    GameSession(const HWND hWnd);
+
+    explicit GameSession(HWND hWnd);
+
     ~GameSession();
+
     void ResizeEvent();
-    void PreparerResize(LPMINMAXINFO &lpminmaxinfo);
+
+    static void PreparerResize(LPMINMAXINFO &lpminmaxinfo);
+
     void Repaint();
+
     void MovePlatform(float center);
+
     void SwitchPause();
-    bool IsShowingLB();
+
+    [[nodiscard]] bool IsShowingLB() const;
+
     void SwitchShowingLB();
+
     bool IsPaused();
+
     void TryToStartGame();
+
     void MovePlatformLeft();
+
     void MovePlatformRight();
+
     void SetAllNeedRepaint(bool background);
+
     void ShowLeaderBoard();
+
+    void AddToScoreBoard(std::string *name);
 };
 
 

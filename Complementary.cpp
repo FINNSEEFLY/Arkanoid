@@ -1,7 +1,3 @@
-//
-// Created by FINNSEEFLY on 26.11.2020.
-//
-
 #include "Complementary.h"
 #include "math.h"
 
@@ -17,11 +13,6 @@ BoolRECT FindOccurrences(FloatRECT target, FloatRECT incoming) {
     result.rightDown = IsDotInRect(incoming.right, incoming.bottom, target);
     return result;
 }
-LPCSTR ConvertIntToLPCSTR(int value) {
-    std::stringstream s;
-    s << std::scientific << value;
-    return s.str().c_str();
-}
 
 std::string ConvertIntToString(int value) {
     std::stringstream s;
@@ -31,4 +22,9 @@ std::string ConvertIntToString(int value) {
 
 float ConvertDegToRad(float value) {
     return value * M_PI / 180;
+}
+
+long ConvertStringToLong(std::string str) {
+    if (str == "") return 0;
+    return std::stol(str);
 }

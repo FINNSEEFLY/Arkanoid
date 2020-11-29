@@ -1,7 +1,3 @@
-//
-// Created by FINNSEEFLY on 24.11.2020.
-//
-
 #include "Bonus.h"
 
 bool Bonus::IsDestroyed() {
@@ -14,7 +10,7 @@ void Bonus::SetDestroyed() {
 
 void Bonus::CalculateNextPoint(int t) {
     PrepareToRelocate();
-    offsetY += DEFAULT_BONUS_SPEED*t;
+    offsetY += DEFAULT_BONUS_SPEED * t;
     CalculateRECT();
 }
 

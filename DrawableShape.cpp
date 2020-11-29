@@ -1,7 +1,3 @@
-//
-// Created by FINNSEEFLY on 19.11.2020.
-//
-
 #include "DrawableShape.h"
 #include "iostream"
 
@@ -39,7 +35,7 @@ void DrawableShape::SetNeedRepaint() {
     needRepaint = true;
 }
 
-bool DrawableShape::IsNeedRepaint() {
+bool DrawableShape::IsNeedRepaint() const {
     return needRepaint;
 }
 
@@ -51,7 +47,7 @@ void DrawableShape::SetRepaintRECT() {
     wasFilled = true;
 }
 
-bool DrawableShape::IsWasFilled() {
+bool DrawableShape::IsWasFilled() const {
     return wasFilled;
 }
 
@@ -86,33 +82,19 @@ int DrawableShape::GetNumOfIntersection(FloatRECT TargetRect) {
                 if (rect.right - TargetRect.left < TargetRect.bottom - rect.top) return INTERSECTION_LEFT;
                 return INTERSECTION_LEFT_AND_DOWN;
             }
-            throw "case 1";
         }
-            break;
+        break;
         case 2: {
             if (occurrences.rightDown && occurrences.rightUp) return INTERSECTION_LEFT;
             if (occurrences.leftDown && occurrences.rightDown) return INTERSECTION_UP;
             if (occurrences.leftDown && occurrences.leftUp) return INTERSECTION_RIGHT;
             if (occurrences.leftUp && occurrences.rightUp) return INTERSECTION_DOWN;
-            throw "case 2";
-        }
-            break;
-        case 3: {
-            throw "case 3";
-            if (!occurrences.leftUp) return INTERSECTION_LEFT_AND_UP;
-            if (!occurrences.rightUp) return INTERSECTION_RIGHT_AND_UP;
-            if (!occurrences.rightDown) return INTERSECTION_RIGHT_AND_DOWN;
-            if (!occurrences.leftDown) return INTERSECTION_LEFT_AND_DOWN;
-            throw new std::exception;
-        }
-            break;
-        case 4: {
-            return INTERSECTION_INSIDE;
         }
             break;
         default:
-            throw "default";
+            throw std::exception();
     }
+    return 0;
 }
 
 void DrawableShape::PrepareToRelocate() {

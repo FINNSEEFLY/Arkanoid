@@ -1,7 +1,3 @@
-//
-// Created by FINNSEEFLY on 21.11.2020.
-//
-
 #ifndef ARKANOID_COMPLEMENTARY_H
 #define ARKANOID_COMPLEMENTARY_H
 
@@ -100,19 +96,15 @@
 
 #define NUM_OF_LEAD_OFFSET_X 20
 #define NUM_OF_LEAD_WIDTH 63
-#define LEAD_OFFSET_Y 270
-#define LEAD_HEIGHT 39
+#define LEAD_OFFSET_Y 265
+#define LEAD_HEIGHT 54
 #define NAME_OF_LEAD_OFFSET_X 118
 #define NAME_OF_LEAD_WIDTH 477
 #define SCORE_OF_LEAD_OFFSET_X 632
 #define SCORE_OF_LEAD_WIDTH 428
 #define LEAD_VERTICAL_INTERVAL 72
 
-#define IDI_ICON1 109
-
-
-
-
+#define WM_NEED_A_DIALOG_BOX 1337
 
 #include "iostream"
 #include "Windows.h"
@@ -136,12 +128,11 @@ bool IsDotInRect(float x, float y, FloatRECT rect);
 
 BoolRECT FindOccurrences(FloatRECT target, FloatRECT incoming);
 
-LPCSTR ConvertIntToLPCSTR(int value);
-
 std::string ConvertIntToString(int value);
 
 float ConvertDegToRad(float value);
 
+long ConvertStringToLong(std::string str);
 
 
 #endif //ARKANOID_COMPLEMENTARY_H

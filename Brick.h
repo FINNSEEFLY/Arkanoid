@@ -1,7 +1,3 @@
-//
-// Created by FINNSEEFLY on 21.11.2020.
-//
-
 #ifndef ARKANOID_BRICK_H
 #define ARKANOID_BRICK_H
 
@@ -50,11 +46,11 @@ public:
     Brick(float &gameZoneX0, float &gameZoneY0, Gdiplus::Image *&image, float &scale, float offsetX, float offsetY,
           int hitsBeforeDestruction, int price, BrickType brickType);
 
-    bool IsDestroyed();
+    [[nodiscard]] bool IsDestroyed() const;
 
     bool HitTheBrick(bool isFireball);
 
-    int GetPrice();
+    [[nodiscard]] int GetPrice() const;
 
     BrickType GetBrickType();
 };
