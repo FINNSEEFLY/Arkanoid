@@ -8,8 +8,10 @@
 #define RESOURCE_ROOT "res\\"
 #define LVL_DIR "lvl\\"
 #define LVL_EXTENSION ".txt"
+#define LEADER_BOARD_PATH "res\\data\\lb.txt"
 #define BACKGROUND_PIC_PATH L"res\\interface\\SpaceBlurred720p.jpg"
 #define PAUSE_PIC_PATH L"res\\interface\\Pause.png"
+#define LEADER_BOARD_PIC_PATH L"res\\interface\\LeaderBoard.png"
 #define GAME_BOX_PIC_PATH L"res\\interface\\GamingZone.png"
 #define PLATFORM_PIC_PATH L"res\\platform\\platform.png"
 #define BALL_PIC_PATH L"res\\ball\\Ball32x32.png"
@@ -96,6 +98,18 @@
 
 #define DEFAULT_PLATFORM_MOVE 70
 
+#define NUM_OF_LEAD_OFFSET_X 20
+#define NUM_OF_LEAD_WIDTH 63
+#define LEAD_OFFSET_Y 270
+#define LEAD_HEIGHT 39
+#define NAME_OF_LEAD_OFFSET_X 118
+#define NAME_OF_LEAD_WIDTH 477
+#define SCORE_OF_LEAD_OFFSET_X 632
+#define SCORE_OF_LEAD_WIDTH 428
+#define LEAD_VERTICAL_INTERVAL 72
+
+#define IDI_ICON1 109
+
 
 
 
@@ -122,7 +136,7 @@ bool IsDotInRect(float x, float y, FloatRECT rect);
 
 BoolRECT FindOccurrences(FloatRECT target, FloatRECT incoming);
 
-LPCSTR ConvertIntToLPWSTR(int value);
+LPCSTR ConvertIntToLPCSTR(int value);
 
 std::string ConvertIntToString(int value);
 

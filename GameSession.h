@@ -13,6 +13,7 @@
 #include "Brick.h"
 #include "Platform.h"
 #include "Bonus.h"
+#include "TextBox.h"
 
 
 class GameSession {
@@ -56,6 +57,7 @@ private:
 
     Gdiplus::Image *backgroundPic;
     Gdiplus::Image *pausePic;
+    Gdiplus::Image *leaderBoardPic;
     Gdiplus::Image *gameZonePic;
     Gdiplus::Image *platformPic;
     Gdiplus::Image *ballPic;
@@ -80,12 +82,16 @@ private:
     std::vector <Ball*> balls;
     std::vector <Brick*> bricks;
     std::vector <Bonus*> bonuses;
+    std::vector<TextBox*> places;
+    std::vector<TextBox*> names;
+    std::vector<TextBox*> scores;
     Platform* platform;
 
     HFONT hFont;
 
     bool isGameStarted = false;
     bool isGamePaused = false;
+    bool isShowingLB = false;
     bool isNeedGeneration = true;
     bool isWaitForStarted = false;
     bool isNeedRepaintBackground = true;
@@ -110,6 +116,9 @@ private:
     int GenerateBricks(int numOfLevel);
     Brick* BrickFactory(int brickPosX, int brickPosY, int brickType);
     Bonus* BonusFactory(float offsetX, float offsetY, BonusType bonusType, BrickType brickType);
+    TextBox* TextBoxFactory(float offsetX, float offsetY, float width, float height, std::string value, COLORREF color);
+    void LoadLeaderBoard();
+    void SaveLeaderBoard();
     void CalculateBackground(float &backgroundX0, float &backgroundY0, float &backgroundWidth, float &backgroundHeight);
     void CalculateGameBox(float &gameBoxX0, float &gameBoxY0, float &gameBoxSide, float &scale);
     void CalculateGameZone();
@@ -122,7 +131,6 @@ private:
     void DeleteBalls();
     void DeleteBricks();
     void DeleteBonuses();
-    void SetAllNeedRepaint(bool background);
     void RepaintWhatsNeeded();
     void FillWhatsNeed();
     void PaintWhatsNeed();
@@ -140,6 +148,8 @@ private:
     void ProcessingRestartCondition();
     void ProcessingGenerationCondition();
     void SetUsingFireBall(bool fireball);
+    void ReloadLeaderBoardData();
+    void DeleteLeaderBoardData();
 
 public:
 
@@ -151,10 +161,14 @@ public:
     void Repaint();
     void MovePlatform(float center);
     void SwitchPause();
+    bool IsShowingLB();
+    void SwitchShowingLB();
     bool IsPaused();
     void TryToStartGame();
     void MovePlatformLeft();
     void MovePlatformRight();
+    void SetAllNeedRepaint(bool background);
+    void ShowLeaderBoard();
 };
 
 

@@ -30,8 +30,8 @@ int APIENTRY WinMain(HINSTANCE hInstance,
     wcex.cbClsExtra = 0;
     wcex.cbWndExtra = 0;
     wcex.hInstance = hInstance;
-    wcex.hIcon = (HICON) LoadImage(hInstance, "res\\ico\\icon.ico", IMAGE_ICON, 256, 256, LR_LOADFROMFILE);
-    wcex.hIconSm = (HICON) LoadImage(hInstance, "res\\ico\\icon.ico", IMAGE_ICON, 256, 256, LR_LOADFROMFILE);
+    wcex.hIcon = (HICON)LoadImageA(hInstance,"IDI_ICON1",IMAGE_ICON,256,256,0);
+    wcex.hIconSm = wcex.hIcon;
     wcex.hCursor = LoadCursor(NULL, IDC_ARROW);
     wcex.hbrBackground = (HBRUSH) GetStockObject(BLACK_BRUSH);
     wcex.lpszMenuName = NULL;
@@ -43,7 +43,7 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 
     hWnd = CreateWindow("ArkanoidWindowClass",  // Указатель на зарегистрированное имя класса
                         "Arkanoid The Game",    // Указатель на имя окна
-                        WS_OVERLAPPEDWINDOW,    // Стиль окна
+                        WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_THICKFRAME | WS_MINIMIZEBOX | WS_MAXIMIZEBOX,    // Стиль окна
                         CW_USEDEFAULT,          // Горизонтальная позиция окна
                         0,                      // Вертикальная позиция окна
     /*CW_USEDEFAULT*/1440,  // Ширина окна
@@ -77,28 +77,34 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message,
         case WM_KEYDOWN:
             switch (wParam) {
                 case VK_LEFT:
-                    if (!gameSession->IsPaused()) {
+                    if (!gameSession->IsPaused()  && !gameSession->IsShowingLB()) {
                         gameSession->MovePlatformLeft();
                         InvalidateRect(hWnd,NULL,false);
                     }
                     break;
                 case VK_RIGHT:
-                    if (!gameSession->IsPaused()) {
+                    if (!gameSession->IsPaused()  && !gameSession->IsShowingLB()) {
                         gameSession->MovePlatformRight();
                         InvalidateRect(hWnd,NULL,false);
                     }
                     break;
                 case VK_ESCAPE:
-                    gameSession->SwitchPause();
+                    if (!gameSession->IsShowingLB()) {
+                        gameSession->SwitchPause();
+                    }
                     break;
                 case VK_SPACE:
                     gameSession->TryToStartGame();
                     break;
+                case VK_TAB:
+                    if (!gameSession->IsPaused()) {
+                        gameSession->SwitchShowingLB();
+                    }
             }
             break;
         case WM_LBUTTONDOWN: {
             isLeftButtonDown = true;
-            if (!gameSession->IsPaused()) {
+            if (!gameSession->IsPaused()  && !gameSession->IsShowingLB()) {
                 int offsetX = LOWORD(lParam);
                 gameSession->MovePlatform(offsetX);
                 InvalidateRect(hWnd, NULL, false);
@@ -109,7 +115,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message,
             isLeftButtonDown = false;
             break;
         case WM_MOUSEMOVE:
-            if (isLeftButtonDown && !gameSession->IsPaused()) {
+            if (isLeftButtonDown && !gameSession->IsPaused() && !gameSession->IsShowingLB()) {
                 int offsetX = LOWORD(lParam);
                 gameSession->MovePlatform(offsetX);
                 InvalidateRect(hWnd,NULL,false);
@@ -123,9 +129,16 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message,
             gameSession->PreparerResize(lpMMI);
             break;
         }
+        case WM_MOVE:
+            gameSession->SetAllNeedRepaint(true);
+            break;
+        case WM_ACTIVATE:
+            gameSession->SetAllNeedRepaint(true);
+            break;
         case WM_DESTROY:
             delete gameSession;
             PostQuitMessage(0);
+
         default:
             return DefWindowProc(hWnd, message, wParam, lParam);
     }

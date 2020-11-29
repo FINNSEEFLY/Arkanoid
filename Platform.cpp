@@ -10,12 +10,12 @@ void Platform::IncSizeCoefficient() {
     if (sizeCoefficient < 2.24) {
         PrepareToRelocate();
         sizeCoefficient *= 1.5;
-        if (GetRealOffsetX()<0) {
+        if (GetRealOffsetX() < 0) {
             float imageWidth = image->GetWidth();
             offsetX = (imageWidth * sizeCoefficient - imageWidth) / 2;
         }
-        if (GetRealOffsetX()+GetRealWidth()>=DEFAULT_GAME_ZONE_WIDTH) {
-            offsetX = DEFAULT_GAME_ZONE_WIDTH-GetRealWidth();
+        if (GetRealOffsetX() + GetRealWidth() >= DEFAULT_GAME_ZONE_WIDTH) {
+            offsetX = DEFAULT_GAME_ZONE_WIDTH - GetRealWidth();
         }
     }
 }
@@ -24,19 +24,19 @@ void Platform::DecSizeCoefficient() {
     if (sizeCoefficient > 0.45) {
         PrepareToRelocate();
         sizeCoefficient /= 1.5;
-        if (GetRealOffsetX()<0) {
+        if (GetRealOffsetX() < 0) {
             float imageWidth = image->GetWidth();
             offsetX = (imageWidth * sizeCoefficient - imageWidth) / 2;
         }
-        if (GetRealOffsetX()+GetRealWidth()>=DEFAULT_GAME_ZONE_WIDTH) {
-            offsetX = DEFAULT_GAME_ZONE_WIDTH-GetRealWidth();
+        if (GetRealOffsetX() + GetRealWidth() >= DEFAULT_GAME_ZONE_WIDTH) {
+            offsetX = DEFAULT_GAME_ZONE_WIDTH - GetRealWidth();
         }
     }
 }
 
 void Platform::SetDefaultSizeCoefficient() {
     PrepareToRelocate();
-    sizeCoefficient=1;
+    sizeCoefficient = 1;
 }
 
 void Platform::PaintOnGraphics(Gdiplus::Graphics &graphics) {
@@ -96,8 +96,8 @@ void Platform::MoveLeft() {
         SetRepaintRECT();
     }
 
-    offsetX-=DEFAULT_PLATFORM_MOVE;
-    if (GetRealOffsetX()<0) {
+    offsetX -= DEFAULT_PLATFORM_MOVE;
+    if (GetRealOffsetX() < 0) {
         float imageWidth = image->GetWidth();
         offsetX = (imageWidth * sizeCoefficient - imageWidth) / 2;
     }
@@ -110,9 +110,9 @@ void Platform::MoveRight() {
         SetRepaintRECT();
     }
 
-    offsetX+=DEFAULT_PLATFORM_MOVE;
-    if (GetRealOffsetX()+GetRealWidth()>=DEFAULT_GAME_ZONE_WIDTH) {
-        offsetX = DEFAULT_GAME_ZONE_WIDTH-GetRealWidth();
+    offsetX += DEFAULT_PLATFORM_MOVE;
+    if (GetRealOffsetX() + GetRealWidth() >= DEFAULT_GAME_ZONE_WIDTH) {
+        offsetX = DEFAULT_GAME_ZONE_WIDTH - GetRealWidth();
     }
 
 

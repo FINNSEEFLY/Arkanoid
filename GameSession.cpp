@@ -12,6 +12,7 @@
 GameSession::GameSession(const HWND hwnd) : hWnd(hwnd) {
     backgroundPic = new Gdiplus::Image(BACKGROUND_PIC_PATH);
     pausePic = new Gdiplus::Image(PAUSE_PIC_PATH);
+    leaderBoardPic = new Gdiplus::Image(LEADER_BOARD_PIC_PATH);
     gameZonePic = new Gdiplus::Image(GAME_BOX_PIC_PATH);
     platformPic = new Gdiplus::Image(PLATFORM_PIC_PATH);
     defaultBallPic = new Gdiplus::Image(BALL_PIC_PATH);
@@ -37,7 +38,7 @@ GameSession::GameSession(const HWND hwnd) : hWnd(hwnd) {
     level = 1;
     lives = 3;
     score = 0;
-    numOfBalls=1;
+    numOfBalls = 1;
 
     lf.lfCharSet = DEFAULT_CHARSET;
     lf.lfPitchAndFamily = DEFAULT_PITCH;
@@ -92,11 +93,14 @@ GameSession::GameSession(const HWND hwnd) : hWnd(hwnd) {
     upSide.top = UP_SIDE_TOP;
     upSide.bottom = UP_SIDE_BOTTOM;
 
+    LoadLeaderBoard();
+
 }
 
 GameSession::~GameSession() {
     delete backgroundPic;
     delete pausePic;
+    delete leaderBoardPic;
     delete gameZonePic;
     delete platformPic;
     delete defaultBallPic;
@@ -121,7 +125,7 @@ GameSession::~GameSession() {
     DeleteBricks();
     DeleteBalls();
     DeleteBonuses();
-
+    DeleteLeaderBoardData();
     DeleteObject(brush);
 }
 
@@ -141,7 +145,7 @@ void GameSession::ResizeEvent() {
 void GameSession::Repaint() {
     InitPaintBEP();
     PrepareFontDrawing(hFont);
-    GetWindowRect(hWnd, &windowRect);
+/*    GetWindowRect(hWnd, &windowRect);
     if (windowRect.right != prevWindowRect.right ||
         windowRect.left != prevWindowRect.left ||
         windowRect.top != prevWindowRect.top ||
@@ -151,7 +155,7 @@ void GameSession::Repaint() {
         prevWindowRect.top = windowRect.top;
         prevWindowRect.right = windowRect.right;
         SetAllNeedRepaint(true);
-    }
+    }*/
 /*    std::cout << "__________________ " << ps.rcPaint.top << " " << ps.rcPaint.bottom << " " << ps.rcPaint.left << " "
               << ps.rcPaint.right << " -------------" << std::endl;*/
 
@@ -164,25 +168,27 @@ void GameSession::Repaint() {
         SetAllNeedRepaint(false);
     }
     RepaintController();
-    RepaintController();
 
     if (oldLevel != level || isNeedRepaintLevel) {
+        std::string levelStr = ConvertIntToString(level);
         FillRect(memDC, &levelTextRect, brush);
-        DrawTextA(memDC, ConvertIntToLPWSTR(level), -1, (LPRECT) &levelTextRect,
+        DrawTextA(memDC, levelStr.c_str(), -1, (LPRECT) &levelTextRect,
                   DT_CENTER | DT_SINGLELINE | DT_VCENTER);
         oldLevel = level;
         isNeedRepaintLevel = false;
     }
     if (oldScore != score || isNeedRepaintScore) {
+        std::string scoreStr = ConvertIntToString(score);
         FillRect(memDC, &scoreTextRect, brush);
-        DrawTextA(memDC, ConvertIntToLPWSTR(score), -1, (LPRECT) &scoreTextRect,
+        DrawTextA(memDC, scoreStr.c_str(), -1, (LPRECT) &scoreTextRect,
                   DT_CENTER | DT_SINGLELINE | DT_VCENTER);
         oldScore = score;
         isNeedRepaintScore = false;
     }
     if (oldLives != lives || isNeedRepaintLives) {
+        std::string livesStr = ConvertIntToString(lives);
         FillRect(memDC, &livesTextRect, brush);
-        DrawTextA(memDC, ConvertIntToLPWSTR(lives), -1, (LPRECT) &livesTextRect,
+        DrawTextA(memDC, livesStr.c_str(), -1, (LPRECT) &livesTextRect,
                   DT_CENTER | DT_SINGLELINE | DT_VCENTER);
         oldLives = lives;
         isNeedRepaintLives = false;
@@ -190,28 +196,30 @@ void GameSession::Repaint() {
     if (isGamePaused) {
         graphics->DrawImage(pausePic, gameBoxX0, gameBoxY0, gameBoxSide, gameBoxSide);
     }
+    if (isShowingLB) {
+        ShowLeaderBoard();
+    }
     CompletionFontDrawing(hFont);
     CompletionPaintingBEP();
-    if (!isGamePaused && isGameStarted && !isWaitForStarted) {
+    if (!isShowingLB && !isGamePaused && isGameStarted && !isWaitForStarted) {
         InvalidateRgn(hWnd, NULL, false);
     }
 }
 
 void GameSession::RepaintController() {
     if (lives == 0) {
-        // проигрыш все дела
+        //TODO проигрыш все дела
         ProcessingRestartCondition();
     }
     if (isNeedGeneration) {
         ProcessingGenerationCondition();
     }
-    if (isGameStarted && !isGamePaused) {
+    if (isGameStarted && !isGamePaused && !isShowingLB) {
         ProcessingGameCondition();
     }
     RepaintWhatsNeeded();
     DeleteWhatsNeeded();
 }
-
 
 void GameSession::ProcessingGameCondition() {
     endTick = GetTickCount();
@@ -253,7 +261,7 @@ void GameSession::ProcessingGameCondition() {
                     Bonus *bonus = BonusFactory((brickRect.right - brickRect.left) / 2 + brickRect.left,
                                                 (brickRect.bottom - brickRect.top) / 2 + brickRect.top,
                                                 RandomizeBonus(), brick->GetBrickType());
-                    if (bonus!=nullptr) {
+                    if (bonus != nullptr) {
                         bonuses.push_back(bonus);
                     }
                 }
@@ -278,9 +286,9 @@ void GameSession::ProcessingGameCondition() {
                 bonus->PrepareToRelocate();
                 continue;
             }
-            for(auto brick:bricks) {
+            for (auto brick:bricks) {
                 int numOfIntersection = bonus->GetNumOfIntersection(brick->GetRECT());
-                if (numOfIntersection==0) continue;
+                if (numOfIntersection == 0) continue;
                 brick->PrepareToRelocate();
             }
         }
@@ -301,7 +309,6 @@ void GameSession::BeginAgainThisLevel() {
     isWaitForStarted = true;
     numOfBalls = 1;
     ResetPlatform();
-
     SetBonusesNeedDelete();
     RepaintWhatsNeeded();
     DeleteWhatsNeeded();
@@ -341,7 +348,6 @@ void GameSession::InitPaintBEP() {
     hBM = CreateCompatibleBitmap(hdc, clientWidth, clientHeight);
     oldBmp = (HBITMAP) SelectObject(memDC, hBM);
     graphics = new Gdiplus::Graphics(memDC);
-    // Добавлено как костыль, если будет влиять на производительность - удалить
     BitBlt(memDC, 0, 0, clientWidth, clientHeight, hdc, 0, 0, SRCCOPY);
 }
 
@@ -409,7 +415,7 @@ void GameSession::CalculateFontProperties() {
 void GameSession::PrepareFontDrawing(HFONT &hfont) {
     hfont = CreateFontIndirect(&lf);
     DeleteObject(SelectObject(memDC, hfont));
-    SetTextColor(memDC, RGB(255, 255, 255));
+    SetTextColor(memDC, RGB(0, 230, 255));
     SetBkColor(memDC, RGB(0, 0, 0));
 }
 
@@ -520,20 +526,21 @@ void GameSession::SetAllNeedRepaint(bool background) {
         if (!ball->IsDestroyed()) {
             ball->SetNeedRepaint();
         }
-        for (auto brick: bricks) {
-            if (!brick->IsDestroyed()) {
-                brick->SetNeedRepaint();
-            }
-        }
-        for (auto bonus: bonuses) {
-            bonus->SetNeedRepaint();
-        }
-        platform->SetNeedRepaint();
     }
+    for (auto brick: bricks) {
+        if (!brick->IsDestroyed()) {
+            brick->SetNeedRepaint();
+        }
+    }
+    for (auto bonus: bonuses) {
+        bonus->SetNeedRepaint();
+    }
+    platform->SetNeedRepaint();
+
 }
 
 void GameSession::TryToStartGame() {
-    if (isWaitForStarted && !isGameStarted && !isGamePaused) {
+    if (isWaitForStarted && !isGameStarted && !isGamePaused && !isShowingLB) {
         isWaitForStarted = false;
         isGameStarted = true;
         InvalidateRect(hWnd, NULL, false);
@@ -684,10 +691,10 @@ void GameSession::CorrectOffsetAndAngle(Ball *ball, FloatRECT barrierRect, int n
 }
 
 void GameSession::DeleteWhatsNeeded() {
-    for (int i = 0; i<balls.size(); i++) {
-    /*for (auto ball: balls) {*/
+    for (int i = 0; i < balls.size(); i++) {
+        /*for (auto ball: balls) {*/
         if (balls[i]->IsDestroyed()) {
-            Ball* ball = balls[i];
+            Ball *ball = balls[i];
             auto newEnd = std::remove(balls.begin(), balls.end(), ball);
             balls.erase(newEnd, balls.end());
             delete ball;
@@ -695,9 +702,9 @@ void GameSession::DeleteWhatsNeeded() {
         }
     }
     /*for (auto brick: bricks) {*/
-        for (int i = 0; i<bricks.size(); i++) {
+    for (int i = 0; i < bricks.size(); i++) {
         if (bricks[i]->IsDestroyed()) {
-            Brick* brick = bricks[i];
+            Brick *brick = bricks[i];
             auto newEnd = std::remove(bricks.begin(), bricks.end(), brick);
             bricks.erase(newEnd, bricks.end());
             delete brick;
@@ -705,9 +712,9 @@ void GameSession::DeleteWhatsNeeded() {
         }
     }
     /*for (auto bonus: bonuses) {*/
-    for (int i = 0; i<bonuses.size(); i++) {
+    for (int i = 0; i < bonuses.size(); i++) {
         if (bonuses[i]->IsDestroyed()) {
-            Bonus* bonus = bonuses[i];
+            Bonus *bonus = bonuses[i];
             auto newEnd = std::remove(bonuses.begin(), bonuses.end(), bonus);
             bonuses.erase(newEnd, bonuses.end());
             delete bonus;
@@ -731,11 +738,11 @@ void GameSession::CorrectOffsetAndAngleByPlatform(Ball *ball, FloatRECT platform
             if (angle > 0 && angle < 90) {
                 /*ball->SetAngle(360 - angle);*/
                 ball->SetAngle(360 - angle * dotCoefficient * (float) (500 + rand() % 1000) / 1000);
-                if (ball->GetAngle()>330) ball->SetAngle(330);
+                if (ball->GetAngle() > 330) ball->SetAngle(330);
             } else if (angle > 90 && angle < 180) {
                 /*ball->SetAngle(360 - angle);*/
                 ball->SetAngle(360 - angle * dotCoefficient * (float) (500 + rand() % 1000) / 1000);
-                if (ball->GetAngle()<210) ball->SetAngle(210);
+                if (ball->GetAngle() < 210) ball->SetAngle(210);
             }
         }
         default:
@@ -747,7 +754,7 @@ BonusType GameSession::RandomizeBonus() {
     srand(GetTickCount());
     int random = rand() % 4;
     if (random == 0) return BONUS_NONE;
-    random =  rand() % 16 + 1;
+    random = rand() % 16 + 1;
     if (random >= 1 && random <= 4) return BONUS_EXPAND;
     if (random >= 5 && random <= 8) return BONUS_CUT;
     if (random >= 9 && random <= 12) return BONUS_MORE_BALLS;
@@ -816,10 +823,10 @@ void GameSession::UseBonus(Bonus *bonus) {
             break;
         case BONUS_MORE_BALLS: {
             int localNumOfBalls = balls.size();
-            for (int i = 0; i<localNumOfBalls; i++) {
+            for (int i = 0; i < localNumOfBalls; i++) {
                 FloatRECT ballRect = balls[i]->GetRECT();
                 balls.push_back(new Ball(gameZoneX0, gameZoneY0, ballPic, scale, ballRect.left, ballRect.top,
-                                            balls[i]->GetSpeed(), fmod(balls[i]->GetAngle() + 180, 360)));
+                                         balls[i]->GetSpeed(), fmod(balls[i]->GetAngle() + 180, 360)));
                 numOfBalls++;
             }
         }
@@ -828,8 +835,6 @@ void GameSession::UseBonus(Bonus *bonus) {
     bonus->SetDestroyed();
 }
 
-
-
 void GameSession::ResetPlatform() {
     platform->SetOffsetX(DEFAULT_PLATFORM_OFFSET_X);
     platform->SetOffsetY(DEFAULT_PLATFORM_OFFSET_Y);
@@ -837,10 +842,10 @@ void GameSession::ResetPlatform() {
 }
 
 void GameSession::SetBonusesNeedDelete() {
-     for (auto bonus: bonuses) {
-            bonus->PrepareToRelocate();
-            bonus->SetDestroyed();
-        }
+    for (auto bonus: bonuses) {
+        bonus->PrepareToRelocate();
+        bonus->SetDestroyed();
+    }
 }
 
 void GameSession::SetBallsNeedDelete() {
@@ -863,7 +868,7 @@ void GameSession::ProcessingWinCondition() {
     SetBonusesNeedDelete();
     RepaintWhatsNeeded();
     DeleteWhatsNeeded();
-    InvalidateRect(hWnd,NULL,false);
+    InvalidateRect(hWnd, NULL, false);
 
 }
 
@@ -876,7 +881,7 @@ void GameSession::ProcessingRestartCondition() {
     score = 0;
     lives = 3;
     level = 1;
-    numOfBalls=1;
+    numOfBalls = 1;
 
 }
 
@@ -903,6 +908,98 @@ void GameSession::SetUsingFireBall(bool fireball) {
         ballPic = defaultBallPic;
     }
     isFireBall = fireball;
+}
+
+
+bool GameSession::IsShowingLB() {
+    return isShowingLB;
+}
+
+void GameSession::SwitchShowingLB() {
+    isShowingLB = !isShowingLB;
+    if (!isShowingLB) {
+        SetAllNeedRepaint(true);
+        startTick = GetTickCount();
+    }
+    InvalidateRect(hWnd, NULL, false);
+}
+
+void GameSession::ShowLeaderBoard() {
+    graphics->DrawImage(leaderBoardPic, gameBoxX0, gameBoxY0, gameBoxSide, gameBoxSide);
+    for (auto place: places) {
+        place->DrawOnDC(memDC);
+    }
+    for (auto name: names) {
+        name->DrawOnDC(memDC);
+    }
+    for (auto score: scores) {
+        score->DrawOnDC(memDC);
+    }
+}
+
+void GameSession::ReloadLeaderBoardData() {
+    DeleteLeaderBoardData();
+    LoadLeaderBoard();
+}
+
+void GameSession::DeleteLeaderBoardData() {
+    for (auto place: places) {
+        delete place;
+    }
+    places.clear();
+    for (auto name: names) {
+        delete name;
+    }
+    names.clear();
+    for (auto score:scores) {
+        delete score;
+    }
+    scores.clear();
+}
+
+
+void GameSession::LoadLeaderBoard() {
+    std::ifstream reader(LEADER_BOARD_PATH);
+    if (!reader.is_open()) return;
+    int numOfLeaders;
+    COLORREF color = RGB(99, 97, 97);
+    numOfLeaders = 0;
+    std::string name;
+    int score;
+    reader >> name;
+    while (!reader.eof() && numOfLeaders<10){
+        numOfLeaders++;
+        reader >> score;
+        places.push_back(
+                TextBoxFactory(NUM_OF_LEAD_OFFSET_X, LEAD_OFFSET_Y + (numOfLeaders-1) * LEAD_VERTICAL_INTERVAL, NUM_OF_LEAD_WIDTH,
+                               LEAD_HEIGHT, ConvertIntToString(numOfLeaders), color));
+        names.push_back(
+                TextBoxFactory(NAME_OF_LEAD_OFFSET_X, LEAD_OFFSET_Y + (numOfLeaders-1) * LEAD_VERTICAL_INTERVAL, NAME_OF_LEAD_WIDTH,
+                               LEAD_HEIGHT, name, color));
+        scores.push_back(
+                TextBoxFactory(SCORE_OF_LEAD_OFFSET_X, LEAD_OFFSET_Y + (numOfLeaders-1) * LEAD_VERTICAL_INTERVAL, SCORE_OF_LEAD_WIDTH,
+                               LEAD_HEIGHT, ConvertIntToString(score), color));
+        reader >> name;
+    }
+    for (int i = numOfLeaders; i < 10; i++) {
+        std::string name = "";
+        std::string score = "";
+        places.push_back(
+                TextBoxFactory(NUM_OF_LEAD_OFFSET_X, LEAD_OFFSET_Y + i * LEAD_VERTICAL_INTERVAL, NUM_OF_LEAD_WIDTH,
+                               LEAD_HEIGHT, ConvertIntToString(i + 1), color));
+        names.push_back(
+                TextBoxFactory(NAME_OF_LEAD_OFFSET_X, LEAD_OFFSET_Y + i * LEAD_VERTICAL_INTERVAL, NAME_OF_LEAD_WIDTH,
+                               LEAD_HEIGHT, name, color));
+        scores.push_back(
+                TextBoxFactory(SCORE_OF_LEAD_OFFSET_X, LEAD_OFFSET_Y + i * LEAD_VERTICAL_INTERVAL, SCORE_OF_LEAD_WIDTH,
+                               LEAD_HEIGHT, score, color));
+    }
+    reader.close();
+}
+
+TextBox *
+GameSession::TextBoxFactory(float offsetX, float offsetY, float width, float height, std::string value, COLORREF color) {
+    return new TextBox(gameBoxX0, gameBoxY0, scale, offsetX, offsetY, width, height, value, color);
 }
 
 
