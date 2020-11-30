@@ -341,6 +341,7 @@ void GameSession::InitPaintBEP() {
 
 void GameSession::CompletionPaintingBEP() {
     BitBlt(hdc, 0, 0, clientWidth, clientHeight, memDC, 0, 0, SRCCOPY);
+    ValidateRect(hWnd, &ps.rcPaint);
     DeleteObject(SelectObject(memDC, oldBmp));
     DeleteObject(hBM);
     DeleteDC(memDC);
@@ -403,7 +404,7 @@ void GameSession::CalculateFontProperties() {
 void GameSession::PrepareFontDrawing(HFONT &hfont) {
     hfont = CreateFontIndirect(&lf);
     DeleteObject(SelectObject(memDC, hfont));
-    SetTextColor(memDC, RGB(0, 230, 255));
+    SetTextColor(memDC,RGB(0, 230, 255));
     SetBkColor(memDC, RGB(0, 0, 0));
 }
 
@@ -591,6 +592,17 @@ void GameSession::CorrectOffsetAndAngle(Ball *ball, FloatRECT barrierRect, int n
     switch (numOfIntersection) {
         case INTERSECTION_NONE:
             break;
+        case INTERSECTION_DOWN: {
+            ball->SetOffsetY(barrierRect.bottom);
+            if (angle == 270) {
+                ball->SetAngle(fmod(angle + 180, 360));
+            } else if (angle > 180 && angle < 270) {
+                ball->SetAngle(360 - angle);
+            } else if (angle > 270 && angle < 360) {
+                ball->SetAngle(360 - angle);
+            }
+        }
+            break;
         case INTERSECTION_LEFT: {
             ball->SetOffsetX2(barrierRect.left);
             if (angle == 0) {
@@ -622,17 +634,6 @@ void GameSession::CorrectOffsetAndAngle(Ball *ball, FloatRECT barrierRect, int n
                 ball->SetAngle(180 - angle);
             } else if (angle > 180 && angle < 270) {
                 ball->SetAngle(540 - angle);
-            }
-        }
-            break;
-        case INTERSECTION_DOWN: {
-            ball->SetOffsetY(barrierRect.bottom);
-            if (angle == 270) {
-                ball->SetAngle(fmod(angle + 180, 360));
-            } else if (angle > 180 && angle < 270) {
-                ball->SetAngle(360 - angle);
-            } else if (angle > 270 && angle < 360) {
-                ball->SetAngle(360 - angle);
             }
         }
             break;
@@ -669,10 +670,6 @@ void GameSession::CorrectOffsetAndAngle(Ball *ball, FloatRECT barrierRect, int n
             if (angle == 315) {
                 ball->SetAngle(fmod(angle + 180, 360));
             }
-        }
-            break;
-        case INTERSECTION_INSIDE: {
-            std::cout << "INTERSECTION_INSIDE" << std::endl;
         }
             break;
     }
@@ -850,7 +847,6 @@ void GameSession::ProcessingWinCondition() {
     RepaintWhatsNeeded();
     DeleteWhatsNeeded();
     InvalidateRect(hWnd, NULL, false);
-
 }
 
 void GameSession::ProcessingRestartCondition() {
@@ -871,8 +867,13 @@ void GameSession::ProcessingGenerationCondition() {
     DeleteBricks();
     DeleteBonuses();
     numOfBricks = GenerateBricks(level);
-    if (numOfBricks == 0)
+    if (numOfBricks == -1) {
+        score += 100 * lives * level;
         lives = 0;
+        InvalidateRect(hWnd, NULL, false);
+        SetAllNeedRepaint(true);
+        return;
+    }
     balls.push_back(new Ball(gameZoneX0, gameZoneY0, ballPic, scale,
                              platform->GetRealWidth() / 2 + platform->GetRealOffsetX() - ballPic->GetWidth() / 2,
                              platform->GetOffsetY() - 1 - ballPic->GetHeight(), DEFAULT_SPEED, DEFAULT_ANGLE));
@@ -982,7 +983,7 @@ void GameSession::AddToScoreBoard(std::string *name) {
     for (int i = 0; i < 10; i++) {
         if (winScore > ConvertStringToLong(scores[i]->GetValue())) {
             for (int j = 9; j >= i; j--) {
-                if (ConvertStringToLong(scores[j]->GetValue()) != 0) {
+                if (ConvertStringToLong(scores[j]->GetValue()) != 0 && j != 8 + 1) {
                     SwapPlaces(j, j + 1);
                 }
                 readyToAdd = true;

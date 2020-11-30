@@ -80,6 +80,7 @@ int DrawableShape::GetNumOfIntersection(FloatRECT TargetRect) {
             if (occurrences.rightUp) {
                 if (rect.right - TargetRect.left > TargetRect.bottom - rect.top) return INTERSECTION_DOWN;
                 if (rect.right - TargetRect.left < TargetRect.bottom - rect.top) return INTERSECTION_LEFT;
+                if (rect.right - TargetRect.left < TargetRect.bottom - rect.top) return INTERSECTION_LEFT;
                 return INTERSECTION_LEFT_AND_DOWN;
             }
         }

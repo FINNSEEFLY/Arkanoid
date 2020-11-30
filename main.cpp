@@ -76,16 +76,13 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message,
             gameSession->Repaint();
             break;
         case WM_LBUTTONDOWN: {
-            isLeftButtonDown = true;
+            isLeftButtonDown = !isLeftButtonDown;
             if (!gameSession->IsPaused() && !gameSession->IsShowingLB()) {
                 int offsetX = LOWORD(lParam);
                 gameSession->MovePlatform(offsetX);
                 InvalidateRect(hWnd, NULL, false);
             }
         }
-            break;
-        case WM_LBUTTONUP:
-            isLeftButtonDown = false;
             break;
         case WM_MOUSEMOVE:
             if (isLeftButtonDown && !gameSession->IsPaused() && !gameSession->IsShowingLB()) {
