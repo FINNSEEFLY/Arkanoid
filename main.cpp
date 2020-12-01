@@ -139,6 +139,10 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message,
                 auto *str = (std::string *) result;
                 if (!str->empty())
                     gameSession->AddToScoreBoard(str);
+                else {
+                    str = new std::string("Player");
+                    gameSession->AddToScoreBoard(str);
+                }
             }
         }
             break;

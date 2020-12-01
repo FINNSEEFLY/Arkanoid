@@ -8,8 +8,6 @@ class Ball : public DrawableShape {
 private:
     float speed;
     float angle;
-    float prevOffsetX;
-    float prevOffsetY;
     bool destroyed = false;
 public:
     void CalculateNextPoint(int t);

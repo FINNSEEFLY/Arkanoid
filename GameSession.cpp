@@ -140,64 +140,31 @@ void GameSession::ResizeEvent() {
 }
 
 void GameSession::Repaint() {
-    InitPaintBEP();
+    InitPaint();
     PrepareFontDrawing(hFont);
-    if (ps.rcPaint.bottom - ps.rcPaint.top != clientHeight || ps.rcPaint.right - ps.rcPaint.left != clientWidth) {
-        SetAllNeedRepaint(true);
-    }
     if (isNeedRepaintBackground) {
         graphics->DrawImage(backgroundPic, backgroundX0, backgroundY0, backgroundWidth, backgroundHeight);
         graphics->DrawImage(gameZonePic, gameBoxX0, gameBoxY0, gameBoxSide, gameBoxSide);
         SetAllNeedRepaint(false);
     }
-    RepaintController();
-
-    if (oldLevel != level || isNeedRepaintLevel) {
-        std::string levelStr = ConvertIntToString(level);
-        FillRect(memDC, &levelTextRect, brush);
-        DrawTextA(memDC, levelStr.c_str(), -1, (LPRECT) &levelTextRect,
-                  DT_CENTER | DT_SINGLELINE | DT_VCENTER);
-        oldLevel = level;
-        isNeedRepaintLevel = false;
-    }
-    if (oldScore != score || isNeedRepaintScore) {
-        std::string scoreStr = ConvertIntToString(score);
-        FillRect(memDC, &scoreTextRect, brush);
-        DrawTextA(memDC, scoreStr.c_str(), -1, (LPRECT) &scoreTextRect,
-                  DT_CENTER | DT_SINGLELINE | DT_VCENTER);
-        oldScore = score;
-        isNeedRepaintScore = false;
-    }
-    if (oldLives != lives || isNeedRepaintLives) {
-        std::string livesStr = ConvertIntToString(lives);
-        FillRect(memDC, &livesTextRect, brush);
-        DrawTextA(memDC, livesStr.c_str(), -1, (LPRECT) &livesTextRect,
-                  DT_CENTER | DT_SINGLELINE | DT_VCENTER);
-        oldLives = lives;
-        isNeedRepaintLives = false;
-    }
+    GameplayProcessor();
+    RepaintGameInfo();
     if (isGamePaused) {
         graphics->DrawImage(pausePic, gameBoxX0, gameBoxY0, gameBoxSide, gameBoxSide);
     }
     if (isShowingLB) {
         ShowLeaderBoard();
     }
-    CompletionFontDrawing(hFont);
-    CompletionPaintingBEP();
+    ReleaseFontResources(hFont);
+    ReleaseGraphicsResources();
     if (!isShowingLB && !isGamePaused && isGameStarted && !isWaitForStarted) {
-        InvalidateRgn(hWnd, NULL, false);
+        InvalidateRect(hWnd, NULL, false);
     }
 }
 
-void GameSession::RepaintController() {
+void GameSession::GameplayProcessor() {
     if (lives == 0) {
-        for (int i = 0; i < 10; i++) {
-            if (score > ConvertStringToLong(scores[i]->GetValue())) {
-                winScore = score;
-                SendMessageA(hWnd, WM_NEED_A_DIALOG_BOX, 0, 0);
-                break;
-            }
-        }
+        HighScoreCheck();
         ProcessingRestartCondition();
     }
     if (isNeedGeneration) {
@@ -330,7 +297,7 @@ void GameSession::PreparerResize(LPMINMAXINFO &lpminmaxinfo) {
     lpminmaxinfo->ptMinTrackSize.y = MIN_GAME_ZONE_SIDE + 40;
 }
 
-void GameSession::InitPaintBEP() {
+void GameSession::InitPaint() {
     hdc = BeginPaint(hWnd, &ps);
     memDC = CreateCompatibleDC(hdc);
     hBM = CreateCompatibleBitmap(hdc, clientWidth, clientHeight);
@@ -339,7 +306,7 @@ void GameSession::InitPaintBEP() {
     BitBlt(memDC, 0, 0, clientWidth, clientHeight, hdc, 0, 0, SRCCOPY);
 }
 
-void GameSession::CompletionPaintingBEP() {
+void GameSession::ReleaseGraphicsResources() {
     BitBlt(hdc, 0, 0, clientWidth, clientHeight, memDC, 0, 0, SRCCOPY);
     ValidateRect(hWnd, &ps.rcPaint);
     DeleteObject(SelectObject(memDC, oldBmp));
@@ -404,11 +371,11 @@ void GameSession::CalculateFontProperties() {
 void GameSession::PrepareFontDrawing(HFONT &hfont) {
     hfont = CreateFontIndirect(&lf);
     DeleteObject(SelectObject(memDC, hfont));
-    SetTextColor(memDC,RGB(0, 230, 255));
+    SetTextColor(memDC, RGB(0, 230, 255));
     SetBkColor(memDC, RGB(0, 0, 0));
 }
 
-void GameSession::CompletionFontDrawing(HFONT &hfont) {
+void GameSession::ReleaseFontResources(HFONT &hfont) {
     DeleteObject(hfont);
 }
 
@@ -525,7 +492,6 @@ void GameSession::SetAllNeedRepaint(bool background) {
         bonus->SetNeedRepaint();
     }
     platform->SetNeedRepaint();
-
 }
 
 void GameSession::TryToStartGame() {
@@ -757,19 +723,19 @@ Bonus *GameSession::BonusFactory(float offsetX, float offsetY, BonusType bonusTy
             switch (brickType) {
                 case BRICK_TYPE_PURPLE:
                     return new Bonus(gameZoneX0, gameZoneY0, bonusEXP1Pic, scale, offsetX, offsetY, BONUS_EXPERIENCE,
-                                     BRICK_PRICE_PURPLE * 5 * 5);
+                                     BRICK_PRICE_PURPLE * 25);
                 case BRICK_TYPE_GREEN:
                     return new Bonus(gameZoneX0, gameZoneY0, bonusEXP3Pic, scale, offsetX, offsetY, BONUS_EXPERIENCE,
-                                     BRICK_PRICE_GREEN * 5 * 5);
+                                     BRICK_PRICE_GREEN * 25);
                 case BRICK_TYPE_BLUE:
                     return new Bonus(gameZoneX0, gameZoneY0, bonusEXP2Pic, scale, offsetX, offsetY, BONUS_EXPERIENCE,
-                                     BRICK_PRICE_BLUE * 5 * 5);
+                                     BRICK_PRICE_BLUE * 25);
                 case BRICK_TYPE_RED:
                     return new Bonus(gameZoneX0, gameZoneY0, bonusEXP5Pic, scale, offsetX, offsetY, BONUS_EXPERIENCE,
-                                     BRICK_PRICE_RED * 5 * 5);
+                                     BRICK_PRICE_RED * 25);
                 case BRICK_TYPE_YELLOW:
                     return new Bonus(gameZoneX0, gameZoneY0, bonusEXP4Pic, scale, offsetX, offsetY, BONUS_EXPERIENCE,
-                                     BRICK_PRICE_YELLOW * 5 * 5);
+                                     BRICK_PRICE_YELLOW * 25);
                 default:
                     return nullptr;
             }
@@ -868,7 +834,7 @@ void GameSession::ProcessingGenerationCondition() {
     DeleteBonuses();
     numOfBricks = GenerateBricks(level);
     if (numOfBricks == -1) {
-        score += 100 * lives * level;
+        score += 1000 * lives * (level - 1);
         lives = 0;
         InvalidateRect(hWnd, NULL, false);
         SetAllNeedRepaint(true);
@@ -1040,6 +1006,43 @@ void GameSession::DefaultInitScoreBoard(int startIndex, COLORREF color) {
     }
 }
 
+void GameSession::RepaintGameInfo() {
+    if (oldLevel != level || isNeedRepaintLevel) {
+        std::string levelStr = ConvertIntToString(level);
+        FillRect(memDC, &levelTextRect, brush);
+        DrawTextA(memDC, levelStr.c_str(), -1, (LPRECT) &levelTextRect,
+                  DT_CENTER | DT_SINGLELINE | DT_VCENTER);
+        oldLevel = level;
+        isNeedRepaintLevel = false;
+    }
+    if (oldScore != score || isNeedRepaintScore) {
+        std::string scoreStr = ConvertIntToString(score);
+        FillRect(memDC, &scoreTextRect, brush);
+        DrawTextA(memDC, scoreStr.c_str(), -1, (LPRECT) &scoreTextRect,
+                  DT_CENTER | DT_SINGLELINE | DT_VCENTER);
+        oldScore = score;
+        isNeedRepaintScore = false;
+    }
+    if (oldLives != lives || isNeedRepaintLives) {
+        std::string livesStr = ConvertIntToString(lives);
+        FillRect(memDC, &livesTextRect, brush);
+        DrawTextA(memDC, livesStr.c_str(), -1, (LPRECT) &livesTextRect,
+                  DT_CENTER | DT_SINGLELINE | DT_VCENTER);
+        oldLives = lives;
+        isNeedRepaintLives = false;
+    }
+
+}
+
+void GameSession::HighScoreCheck() {
+    for (int i = 0; i < 10; i++) {
+        if (score > ConvertStringToLong(scores[i]->GetValue())) {
+            winScore = score;
+            SendMessageA(hWnd, WM_NEED_A_DIALOG_BOX, 0, 0);
+            break;
+        }
+    }
+}
 
 
 

@@ -1,8 +1,6 @@
 #include "Ball.h"
 
 void Ball::CalculateNextPoint(int t) {
-    prevOffsetX = offsetX;
-    prevOffsetY = offsetY;
     float r = speed * t;
     float h = std::sin(ConvertDegToRad(angle)) * r;
     float s = std::cos(ConvertDegToRad(angle)) * r;
@@ -38,8 +36,6 @@ void Ball::SetOffsetY2(float y) {
     PrepareToRelocate();
     offsetY = y - GetHeight();
 }
-
-
 
 bool Ball::IsDestroyed() const {
     return destroyed;

@@ -124,17 +124,17 @@ private:
 
     void CalculateGameZone();
 
-    void CompletionPaintingBEP();
+    void ReleaseGraphicsResources();
 
-    void InitPaintBEP();
+    void InitPaint();
 
     void CalculateFontProperties();
 
     void PrepareFontDrawing(HFONT &hfont);
 
-    void CompletionFontDrawing(HFONT &hfont);
+    void ReleaseFontResources(HFONT &hfont);
 
-    void RepaintController();
+    void GameplayProcessor();
 
     void DeleteBalls();
 
@@ -181,6 +181,10 @@ private:
     void SwapPlaces(int firstNum, int secondNum);
 
     void DefaultInitScoreBoard(int startIndex, COLORREF color);
+
+    void RepaintGameInfo();
+
+    void HighScoreCheck();
 
 public:
 
