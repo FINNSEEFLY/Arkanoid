@@ -140,6 +140,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message,
                 if (!str->empty())
                     gameSession->AddToScoreBoard(str);
                 else {
+                    delete str;
                     str = new std::string("Player");
                     gameSession->AddToScoreBoard(str);
                 }
