@@ -469,7 +469,7 @@ void GameSession::SwitchPause() {
     InvalidateRect(hWnd, NULL, false);
 }
 
-bool GameSession::IsPaused() {
+bool GameSession::IsPaused() const {
     return isGamePaused;
 }
 
@@ -562,9 +562,7 @@ void GameSession::CorrectOffsetAndAngle(Ball *ball, FloatRECT barrierRect, int n
             ball->SetOffsetY(barrierRect.bottom);
             if (angle == 270) {
                 ball->SetAngle(fmod(angle + 180, 360));
-            } else if (angle > 180 && angle < 270) {
-                ball->SetAngle(360 - angle);
-            } else if (angle > 270 && angle < 360) {
+            } else if (angle > 180 && angle < 360) {
                 ball->SetAngle(360 - angle);
             }
         }
@@ -584,9 +582,7 @@ void GameSession::CorrectOffsetAndAngle(Ball *ball, FloatRECT barrierRect, int n
             ball->SetOffsetY2(barrierRect.top);
             if (angle == 90) {
                 ball->SetAngle(fmod(angle + 180, 360));
-            } else if (angle > 0 && angle < 90) {
-                ball->SetAngle(360 - angle);
-            } else if (angle > 90 && angle < 180) {
+            } else if (angle > 0 && angle < 180) {
                 ball->SetAngle(360 - angle);
             }
 
@@ -648,6 +644,7 @@ void GameSession::DeleteWhatsNeeded() {
             auto newEnd = std::remove(balls.begin(), balls.end(), ball);
             balls.erase(newEnd, balls.end());
             delete ball;
+            i--;
         }
     }
     for (int i = 0; i < bricks.size(); i++) {
@@ -665,6 +662,7 @@ void GameSession::DeleteWhatsNeeded() {
             auto newEnd = std::remove(bonuses.begin(), bonuses.end(), bonus);
             bonuses.erase(newEnd, bonuses.end());
             delete bonus;
+            i--;
         }
     }
 }

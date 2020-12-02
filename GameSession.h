@@ -208,7 +208,7 @@ public:
 
     void SwitchShowingLB();
 
-    bool IsPaused();
+    bool IsPaused() const;
 
     void TryToStartGame();
 
